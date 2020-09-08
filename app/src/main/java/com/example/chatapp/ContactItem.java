@@ -1,5 +1,7 @@
 package com.example.chatapp;
 
+import com.example.chatapp.globalinfo.Gender;
+
 import java.util.Date;
 
 public class ContactItem

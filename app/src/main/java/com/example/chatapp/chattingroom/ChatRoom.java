@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.chatapp.ContactItem;
-import com.example.chatapp.LoggedInUser;
 import com.example.chatapp.R;
+import com.example.chatapp.globalinfo.LoggedInUser;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
