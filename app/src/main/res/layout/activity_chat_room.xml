@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ChatRoom"
+    android:weightSum="4">
+
+    <LinearLayout
+        android:onClick="onClickContactInfo"
+        android:background="@color/lightBlue"
+        android:id="@+id/headerBar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+        
+        <ImageView
+            android:id="@+id/contact_pic"
+            android:layout_margin="5dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/male_user"
+            android:background="@drawable/contact_item_photo"/>
+        
+        <LinearLayout
+            android:gravity="center_vertical"
+            android:layout_marginLeft="20sp"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/contact_name"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name Name"/>
+
+            <TextView
+                android:id="@+id/onlineFlag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Online"/>
+        </LinearLayout>
+        
+    </LinearLayout>
+
+    <LinearLayout
+        app:layout_constraintTop_toBottomOf="@id/headerBar"
+        app:layout_constraintBottom_toTopOf="@id/BottomBar"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <ListView
+            android:id="@+id/chattingList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/BottomBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_weight="1"
+        android:layout_margin="10dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <ImageView
+            android:onClick="onClickSendVoice"
+            android:layout_gravity="center_vertical"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/mic_icon_blue"
+            android:layout_marginEnd="2dp"
+            android:background="@drawable/mic_item_photo"/>
+
+        <EditText
+            android:layout_gravity="center_vertical"
+            android:id="@+id/chattingTextInput"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:hint="write your message"
+            android:paddingStart="20sp"
+            android:background="@drawable/chatting_input_text"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageView
+            android:onClick="onClickAttachImage"
+            android:layout_marginLeft="5dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/add_image_icon"
+            android:background="@drawable/mic_item_photo"/>
+
+        <ImageView
+            android:onClick="sendMessage"
+            android:layout_marginLeft="5dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="50dp"
+            android:rotation="50"
+            android:layout_height="50dp"
+            android:src="@drawable/send_button_icon"
+            android:background="@drawable/mic_item_photo"/>
+
+    </LinearLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

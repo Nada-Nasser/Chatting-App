@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+         <LinearLayout
+             android:layout_gravity="center"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"
+             android:gravity="center">
+
+             <TextView
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:text="@string/phonenumber"
+                 android:textSize="20sp"
+                 android:layout_margin="@dimen/defaultMargin"/>
+
+             <EditText
+                 android:id="@+id/user_phone_number"
+                 android:layout_margin="@dimen/defaultMargin"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:hint="@string/PhoneNumberRequest"
+                 android:textColor="#000"
+                 android:padding="20dp"
+                 android:background="@drawable/myrect"
+                 android:inputType="phone"/>
+
+             <LinearLayout
+                 android:layout_margin="@dimen/defaultMargin"
+                 android:orientation="horizontal"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/gender"
+                     android:textSize="20sp"/>
+
+                 <RadioGroup
+                     android:layout_marginLeft="@dimen/defaultMargin"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="vertical">
+
+                     <RadioButton android:id="@+id/radio_male"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="@string/males"
+                         android:onClick="onRadioButtonClicked"/>
+
+                     <RadioButton android:id="@+id/radio_female"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="@string/female"
+                         android:onClick="onRadioButtonClicked"/>
+                 </RadioGroup>
+
+             </LinearLayout>
+
+
+
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_marginTop="20dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="Select Your picture :"
+                     android:textSize="20sp"
+                     android:layout_margin="@dimen/defaultMargin"/>
+
+                 <ImageView
+                     android:id="@+id/user_pic"
+                     android:layout_margin="@dimen/defaultMargin"
+                     android:layout_width="70dp"
+                     android:layout_height="70dp"
+                     android:src="@drawable/add_user_pic"
+                     android:contentDescription="@string/editphoto"
+                     android:onClick="onClickAddPhoto"/>
+             </LinearLayout>
+
+             <Space
+                 android:layout_width="match_parent"
+                 android:layout_height="@dimen/defaultMargin"/>
+
+             <Button
+                 android:onClick="onClickLoginBu"
+                 android:textSize="20sp"
+                 android:padding="20dp"
+                 android:textColor="#fff"
+                 android:background="@drawable/button_style"
+                 android:layout_margin="@dimen/defaultMargin"
+                 android:layout_width="200dp"
+                 android:layout_height="wrap_content"
+                 android:text="@string/login"/>
+         </LinearLayout>
+    </ScrollView>
+</LinearLayout>

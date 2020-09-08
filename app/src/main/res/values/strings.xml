@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="PhoneNumberRequest">Write your phone number here</string>
+    <string name="welcomeMsg">Write your phone number to start using our app</string>
+    <string name="males">Males</string>
+    <string name="female">Female</string>
+    <string name="gender">Gender :</string>
+    <string name="login">Login</string>
+    <string name="editphoto">Edit Photo :</string>
+    <string name="phonenumber">phone Number :</string>
+</resources>
