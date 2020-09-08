@@ -24,7 +24,7 @@ public class ContactItem
     public ContactItem(int userID, String name, String phoneNumber, String status, Boolean isActive, Date lastOnlineDate, int gender) {
         this.userID = userID;
         this.name = name;
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = FormatPhoneNumber(phoneNumber);
         this.status = status;
         this.isActive = isActive;
         this.lastOnlineDate = lastOnlineDate;
@@ -102,7 +102,7 @@ public class ContactItem
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = FormatPhoneNumber(phoneNumber);
     }
 
     public String getStatus() {
@@ -135,5 +135,20 @@ public class ContactItem
 
     public void setGender(int gender) {
         this.gender = gender;
+    }
+
+    //format phone number
+    public static String FormatPhoneNumber(String Oldnmber)
+    {
+        try{
+            String numberOnly= Oldnmber.replaceAll("[^0-9]", "");
+            if(Oldnmber.charAt(0)=='+') numberOnly="+" +numberOnly ;
+            if (numberOnly.length()>=10)
+                numberOnly=numberOnly.substring(numberOnly.length()-10);
+            return(numberOnly);
+        }
+        catch (Exception ex){
+            return(" ");
+        }
     }
 }

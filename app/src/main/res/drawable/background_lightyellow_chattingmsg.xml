@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    
+
     <item>
         <shape
             android:shape="rectangle">
 
             <!-- Specify a semi-transparent solid green background color -->
-            <solid android:color="@color/white" />
+            <solid android:color="@color/lightYellow" />
 
-            <corners android:radius="5dp"></corners>
+            <corners android:radius="20dp"></corners>
 
             <!-- Specify the margins that all content inside the drawable must adhere to -->
             <padding

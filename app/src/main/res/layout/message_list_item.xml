@@ -4,21 +4,42 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="left"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:layout_marginTop="5dp"
     android:id="@+id/textMsgLayout"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
-    android:layout_marginTop="5dp">
+    android:background="@color/white">
 
-    <ImageView
-        android:id="@+id/msgPhoto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:id="@+id/msgContentLayout"
+        android:gravity="center"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="2dp"
+        android:background="@drawable/background_lightblue_chattingmsg"
 
-    <TextView
-        android:id="@+id/msgText"
-        android:layout_width="wrap_content"
-        android:text="It's a message from my friend "
-        android:layout_height="wrap_content"/>
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_marginTop="10dp"
+            android:id="@+id/msgPhoto"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@color/lowDarkfont"/>
+
+        <TextView
+            android:padding="7dp"
+            android:textColor="@color/black"
+            android:id="@+id/msgText"
+            android:layout_width="150dp"
+            android:text="It's a message from my friend"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
 
 </LinearLayout>

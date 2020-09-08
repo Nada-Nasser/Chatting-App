@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".ChatRoom" android:theme="@style/chatTheme">
+        <activity android:name=".chattingroom.ChatRoom" android:theme="@style/chatTheme">
         </activity>
 
         <activity android:name=".LoginActivity"></activity>

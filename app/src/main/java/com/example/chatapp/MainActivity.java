@@ -1,9 +1,5 @@
 package com.example.chatapp;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.JobIntentService;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -14,12 +10,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.chatapp.chattingroom.ChatRoom;
 import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity
         DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
         Date dateobj = new Date();
 
-        myContactsList.add(new ContactItem(0,"test","test","test",true,dateobj,1));
+        myContactsList.add(new ContactItem(0,"test","0147258369","test",true,dateobj,1));
         myContactsList.add(new ContactItem(0,"test2","test","test",true,dateobj,2));
         myContactsList.add(new ContactItem(0,"test3","test","test",false,dateobj,1));
         myContactsList.add(new ContactItem(0,"test4","test","test",true,dateobj,2));
