@@ -1,9 +1,11 @@
 package com.example.chatapp;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -32,10 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,13 +70,13 @@ public class MainActivity extends AppCompatActivity
         });
 
         try {
-            CheckContactsPermissions(); // add contacts to chatting list
+           CheckContactsPermissions(); // add contacts to chatting list
         }catch (Exception e)
         {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
-      //  addTestUsers();
+        //addTestUsers();
     }
 
     private void OpenChatRoom(ContactItem contactItem)
@@ -92,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         chattingRoomIntent.putExtra("status",contactItem.getStatus());
         chattingRoomIntent.putExtra("isActive",contactItem.getIsActive());
 
-        chattingRoomIntent.putExtra("lastOnlineDate",contactItem.getLastOnlineDate().getTime());
+        //chattingRoomIntent.putExtra("lastOnlineDate",contactItem.getLastOnlineDate().getTime());
 
         chattingRoomIntent.putExtra("gender",contactItem.getGender());
         // TODO: send image path too)
@@ -126,16 +125,15 @@ public class MainActivity extends AppCompatActivity
                     LoadUserContacts();
                 } else {
                     // Permission Denied
-                    Toast.makeText( this,"your message" , Toast.LENGTH_SHORT)
+                    Toast.makeText( this,"You can not use the app correctly without this permission" , Toast.LENGTH_SHORT)
                             .show();
                 }
                 break;
+
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
-
-
 
     private void LoadUserContacts()
     {
@@ -145,18 +143,18 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot)
             {
-                Map<String, ContactItem> numberChattingMap = new HashMap<>();
+                ArrayList<String> NumbersFromFirebase = new ArrayList<>();
 
                 myContactsList.clear();
                 try {
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                         // key = phoneNumber, value = FirebaseChattingMessage
                         String Number = childSnapshot.getKey();
+                        // TODO: get his Info
                         Log.i("Numbers" , Number);
 
                         if (Number != null) {
-                            ContactItem contact = getContactInfo(Number);
-                           // numberChattingMap.put(Number, contact);
+                            NumbersFromFirebase.add(Number);
                         }
                     }
                 }
@@ -169,21 +167,23 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<PairNumberName> listAllPhoneContacts  = getAllPhoneContactList();
 
                 // if the name is save chane his text
-                for (String keyNumber : numberChattingMap.keySet())
+                for (String keyNumber : NumbersFromFirebase)
                 {
                     boolean flag = false;
                     for (PairNumberName cs : listAllPhoneContacts)
                     {
                         if (cs.getPhoneNumber().length() > 0)
                             // we use contains instead of equals because phone numbers may have some extra signs like (+02 )
-                            if (keyNumber.contains(cs.getPhoneNumber()))  // in case the phone number is one of my contacts.
+                            // in case the phone number is one of my contacts.
+                            if (keyNumber.contains(cs.getPhoneNumber()))
                             {
-                                ContactItem c = (ContactItem) numberChattingMap.get(keyNumber);
+                                ContactItem c = new ContactItem("unKnown",cs.name,keyNumber,"unKnown",false,1,"-1");
                                 if (c!=null)
                                 {
                                     flag = true;
                                     c.setName(cs.name);
                                     myContactsList.add(c);
+                                    startContactInfoListener(c , myContactsList.size()-1);
                                     Toast.makeText(getApplicationContext(), "SHOW : " + cs.getPhoneNumber() + ":" + cs.getName(), Toast.LENGTH_SHORT).show();
                                     break;
                                 }
@@ -191,17 +191,16 @@ public class MainActivity extends AppCompatActivity
                     }
                     if (!flag)
                     {
-                        ContactItem c = (ContactItem) numberChattingMap.get(keyNumber);
+                        ContactItem c =  new ContactItem("unKnown",keyNumber,keyNumber,"unKnown",false,1,"-1");
                         if( c != null) {
                             c.setName(c.getPhoneNumber());
+                            startContactInfoListener(c , myContactsList.size()-1);
                             myContactsList.add(c);
                         }
                     }
-
-                    contactsListAdapter.notifyDataSetChanged();
-
                 }
 
+                contactsListAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -209,6 +208,38 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+    }
+
+    private void startContactInfoListener(ContactItem c, int i)
+    {
+        final String name = c.getName();
+        FirebaseDatabase.getInstance().getReference().child("users").child(c.getPhoneNumber()).child("userInfo")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        ContactItem contactItem  = snapshot.getValue(ContactItem.class);
+                        contactItem.setName(name);
+                        updateContactListInfo(contactItem,contactItem.getPhoneNumber());
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    private void updateContactListInfo(ContactItem newContactItem, String phoneNumber)
+    {
+        for(int i = 0 ; i < myContactsList.size();i++)
+        {
+            if (myContactsList.get(i).getPhoneNumber().equalsIgnoreCase(phoneNumber))
+            {
+                myContactsList.set(i,newContactItem);
+                contactsListAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     @NonNull
@@ -226,25 +257,32 @@ public class MainActivity extends AppCompatActivity
 
             listAllPhoneContacts.add(new PairNumberName(name,FormatPhoneNumber(phoneNumber)));
 
+            /*
             if(!phoneNumber.equalsIgnoreCase("0"))
                 Log.i("Numbers", "onDataChange: " + phoneNumber + " Formated : " + FormatPhoneNumber(phoneNumber));
+        */
+
         }
         cursor.close();
         return listAllPhoneContacts;
     }
 
     ContactItem tempContact;
-    private ContactItem getContactInfo(String number)
+    private ContactItem getContactInfo(final String number)
     {
-        DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
-        Date dateobj = new Date();
-        tempContact = (new ContactItem("0","test","0147258369","test",true,dateobj,1));
+        tempContact = new ContactItem();
 
         FirebaseDatabase.getInstance().getReference().child("users").child(number).child("userInfo")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                tempContact = snapshot.getValue(ContactItem.class);
+            public void onDataChange(@NonNull DataSnapshot snapshot)
+            {
+                ContactItem contactItem  = snapshot.getValue(ContactItem.class);
+
+                Toast.makeText(getApplicationContext(),contactItem.toString() , Toast.LENGTH_LONG).show();
+
+                copyContactItemToTemp(contactItem);
+                Log.i("CONTACTS : " , contactItem.toString() + " ADDAD at getContactInfo");
             }
 
             @Override
@@ -256,20 +294,21 @@ public class MainActivity extends AppCompatActivity
         return tempContact;
     }
 
+    private void copyContactItemToTemp(ContactItem contactItem) {
+        tempContact = new ContactItem(contactItem.getUserID(),contactItem.getName(),
+                contactItem.getPhoneNumber(),contactItem.getStatus(),contactItem.getIsActive(),contactItem.getGender(),contactItem.getImagePath());
+    }
 
     private void addTestUsers()
     {
-        DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
-        Date dateobj = new Date();
 
-        myContactsList.add(new ContactItem("0","test","0147258369","test",true,dateobj,1));
-        myContactsList.add(new ContactItem("0","test2","test","test",true,dateobj,2));
-        myContactsList.add(new ContactItem("0","test3","test","test",false,dateobj,1));
-        myContactsList.add(new ContactItem("0","test4","test","test",true,dateobj,2));
+        myContactsList.add(new ContactItem("0","test","0147258369","test",true,1));
+        myContactsList.add(new ContactItem("0","test2","test","test",true,2));
+        myContactsList.add(new ContactItem("0","test3","test","test",false,1));
+        myContactsList.add(new ContactItem("0","test4","test","test",true,2));
 
         contactsListAdapter.notifyDataSetChanged();
     }
-
 
     private void checkUserDate()
     {
@@ -283,26 +322,22 @@ public class MainActivity extends AppCompatActivity
         {
             MyProgressDialogManager.showProgressDialog(this);
             LoggedInUser.loadData(this);
-            loadMyContactInfo();
+            loadMyFirebaseInfo();
             MyProgressDialogManager.hideProgressDialog();
         }
     }
 
-    private void loadMyContactInfo()
+    private void loadMyFirebaseInfo()
     {
         int gender = LoggedInUser.getGender();
         String imgPath = LoggedInUser.getPhotoPath();
-        boolean isActive = true;
-        long lastOnlineDate = 0 ; // // TODO = means NOW
+
         String name = LoggedInUser.getPhoneNumber();
         String phoneNumber = LoggedInUser.getPhoneNumber();
         String status = "Iam fine"; // TODO set a real value
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        Date date = new Date();
-        date.setTime(lastOnlineDate);
-
-        myInfo  = new ContactItem(userId,name,phoneNumber,status,true,date,gender,imgPath);
+        myInfo  = new ContactItem(userId,name,phoneNumber,status,true,gender,imgPath);
 
         Map<String, Object> myRecord = myInfo.toMap();
         String path = "/users/"+LoggedInUser.getPhoneNumber() + "/userInfo/";
@@ -346,11 +381,88 @@ public class MainActivity extends AppCompatActivity
     {
         switch (item.getItemId()){
             case R.id.add_contact:
+                PickContact();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    // pick phone number
+
+    void PickContact()
+    {
+        if (Build.VERSION.SDK_INT >= 23){
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) !=
+                    PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{Manifest.permission.READ_CONTACTS},
+                        REQUEST_CODE_ASK_CONTACTS_PERMISSIONS);
+                return ;
+            }
+        }
+
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, PICK_CONTACT_REQUEST_CODE);
+    }
+
+    // Declare
+    static final int PICK_CONTACT_REQUEST_CODE = 1;
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+
+        switch (reqCode)
+        {
+            case (PICK_CONTACT_REQUEST_CODE) :
+                if (resultCode == Activity.RESULT_OK)
+                {
+                    Uri contactData = data.getData();
+                    Cursor c =  getContentResolver().query(contactData, null, null, null, null);
+
+                    if (c.moveToFirst())
+                    {
+                        String id       = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+                        String hasPhone = c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
+                        String name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+                        String cNumber="No number";
+                        if (hasPhone.equalsIgnoreCase("1"))
+                        {
+                            Cursor phones = getContentResolver().query(
+                                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,
+                                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ id,
+                                    null, null);
+
+                            phones.moveToFirst();
+                            cNumber = FormatPhoneNumber (phones.getString(phones.getColumnIndex("data1")));
+                            System.out.println("number is:"+cNumber);
+                        }
+
+                        // Update firebase
+                        if(cNumber.equalsIgnoreCase("No NNumber"))
+                        {
+                            ContactItem contact = getContactInfo(cNumber);
+                            if(contact != null)
+                            {
+                                contact.setName(name);
+                                OpenChatRoom(contact);
+                            }
+                            else
+                            {
+                                Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
+                            }
+                        }
+                        else
+                        {
+                            Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
+                        }
+                    }
+                    c.close();
+                }
+                break;
+        }
+    }
+
 
     class PairNumberName{
         String name;

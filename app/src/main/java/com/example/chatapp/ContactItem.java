@@ -2,7 +2,6 @@ package com.example.chatapp;
 
 import com.google.firebase.database.Exclude;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +12,7 @@ public class ContactItem
     private String phoneNumber;
     private String status;
     private Boolean isActive;
-    private Date lastOnlineDate;
+    //private Date lastOnlineDate;
     private int gender;
     private String imagePath; // TODO: int for testing, change it to string to be a firebase storage path.
 
@@ -21,13 +20,13 @@ public class ContactItem
     }
 
     public ContactItem(String userId, String name, String phoneNumber, String status,
-                       boolean isActive, Date date, int gender, String imgPath) {
+                       boolean isActive,int gender, String imgPath) {
         this.userID = userId;
         this.name = name;
         this.phoneNumber = FormatPhoneNumber(phoneNumber);
         this.status = status;
         this.isActive = isActive;
-        this.lastOnlineDate = date;
+      //  this.lastOnlineDate = date;
         this.gender = gender;
         this.imagePath = imgPath;
     }
@@ -41,7 +40,7 @@ public class ContactItem
         result.put("status", status);
         result.put("phoneNumber", phoneNumber);
         result.put("isActive", isActive);
-        result.put("lastOnlineDate", lastOnlineDate);
+        //result.put("lastOnlineDate", lastOnlineDate);
         result.put("gender", gender);
         result.put("imagePath", imagePath);
 
@@ -57,37 +56,17 @@ public class ContactItem
         this.imagePath = imagePath;
     }
 
-    public ContactItem(String userID, String name, String phoneNumber, String status, Boolean isActive, Date lastOnlineDate, int gender) {
+    public ContactItem(String userID, String name, String phoneNumber, String status, Boolean isActive, int gender) {
         this.userID = userID;
         this.name = name;
         this.phoneNumber = FormatPhoneNumber(phoneNumber);
         this.status = status;
         this.isActive = isActive;
-        this.lastOnlineDate = lastOnlineDate;
+       // this.lastOnlineDate = lastOnlineDate;
         this.gender = gender;
 
         // TODO: delete this...
         imagePath = "-1";
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ContactItem)) return false;
-
-        ContactItem that = (ContactItem) o;
-
-        if (getUserID() != that.getUserID()) return false;
-        if (getGender() != that.getGender()) return false;
-        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null)
-            return false;
-        if (getPhoneNumber() != null ? !getPhoneNumber().equals(that.getPhoneNumber()) : that.getPhoneNumber() != null)
-            return false;
-        if (getStatus() != null ? !getStatus().equals(that.getStatus()) : that.getStatus() != null)
-            return false;
-        if (isActive != null ? !isActive.equals(that.isActive) : that.isActive != null)
-            return false;
-        return getLastOnlineDate() != null ? getLastOnlineDate().equals(that.getLastOnlineDate()) : that.getLastOnlineDate() == null;
     }
 
 
@@ -101,7 +80,7 @@ public class ContactItem
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", status='" + status + '\'' +
                 ", isActive=" + isActive +
-                ", lastOnlineDate=" + lastOnlineDate +
+      //          ", lastOnlineDate=" + lastOnlineDate +
                 ", gender=" + gender +
                 '}';
     }
@@ -145,7 +124,7 @@ public class ContactItem
     public void setIsActive(Boolean active) {
         isActive = active;
     }
-
+/*
     public Date getLastOnlineDate() {
         return lastOnlineDate;
     }
@@ -153,7 +132,7 @@ public class ContactItem
     public void setLastOnlineDate(Date lastOnlineDate) {
         this.lastOnlineDate = lastOnlineDate;
     }
-
+*/
     public int getGender() {
         return gender;
     }

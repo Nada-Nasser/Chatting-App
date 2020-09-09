@@ -151,13 +151,10 @@ public class ChatRoom extends AppCompatActivity
         String status  = bundle.getString("status",null);
         boolean isActive  = bundle.getBoolean("isActive",false);
 
-        Date lastOnlineDate = new Date();
-        lastOnlineDate.setTime(bundle.getLong("date", -1));
-
         int gender  = bundle.getInt("gender" , 1);
         // TODO: receive image path too.
 
-        chattingContact = new ContactItem(userID,name,phoneNumber,status,isActive,lastOnlineDate,gender);
+        chattingContact = new ContactItem(userID,name,phoneNumber,status,isActive,gender);
 
         updateUI();
     }
@@ -165,7 +162,9 @@ public class ChatRoom extends AppCompatActivity
     private void updateUI()
     {
 // TODO        contactPicImageView.setImageResource(chattingContact.getImagePath());
-        contactActiveFlagTextView.setText(chattingContact.getIsActive()?"online now":chattingContact.getLastOnlineDate().toString());
+   //     contactActiveFlagTextView.setText(chattingContact.getIsActive()?"online now":chattingContact.getLastOnlineDate().toString());
+        contactActiveFlagTextView.setText(chattingContact.getIsActive()?"online now":"offline now");
+
         contactNameTextView.setText(chattingContact.getName());
     }
 
@@ -182,6 +181,8 @@ public class ChatRoom extends AppCompatActivity
     public void sendMessage(View view)
     {
         String msgText = textInputMsgEditText.getText().toString();
+
+        textInputMsgEditText.setText("");
 
         try {
             sendTextMessage( msgText);
