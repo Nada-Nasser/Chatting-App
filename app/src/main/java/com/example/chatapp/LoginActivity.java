@@ -30,8 +30,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -129,16 +127,15 @@ public class LoginActivity extends AppCompatActivity
     {
         LoggedInUser.saveUserDate(this,userPhoneNumberEditText.getText().toString()
         ,"you",attachedImageURL,firebaseAuth.getCurrentUser().getUid(),userGender);
-
+/*
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users");
 
         myRef.child(LoggedInUser.getPhoneNumber()).setValue("0");
-
+*/
         // TODO: check if image equals null.
 
         // TODO: step1: logged in using Firebase Auth (with phone number). and delete the Anonymous user
-
 
         Intent mainActivityIntent = new Intent(this,MainActivity.class);
         startActivity(mainActivityIntent);

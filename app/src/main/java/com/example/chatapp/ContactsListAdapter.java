@@ -8,6 +8,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.chatapp.globalinfo.Gender;
+
 import java.util.ArrayList;
 
 public class ContactsListAdapter extends BaseAdapter
@@ -53,9 +55,9 @@ public class ContactsListAdapter extends BaseAdapter
         contactNameTextView.setText(contactItem.getName());
         contactLastMsgTextView.setText("Hello, iam " + contactItem.getName());
 
-        //int imageResource = contactItem.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
+        int imageResource = contactItem.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
 
-        int imageResource= contactItem.getImagePath();
+        //int imageResource= contactItem.getImagePath();
 
         contactPicImageView.setImageResource(imageResource);
 

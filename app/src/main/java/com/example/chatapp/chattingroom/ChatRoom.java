@@ -144,7 +144,7 @@ public class ChatRoom extends AppCompatActivity
 
     private void getChattingContact(Bundle bundle)
     {
-        int userID  = bundle.getInt("userID");
+        String userID  = bundle.getString("userID","0");
 
         String phoneNumber  = bundle.getString("phoneNumber" , null);
         String name  = bundle.getString("name" , phoneNumber!=null?phoneNumber:"unknown");
@@ -165,7 +165,7 @@ public class ChatRoom extends AppCompatActivity
     private void updateUI()
     {
 // TODO        contactPicImageView.setImageResource(chattingContact.getImagePath());
-        contactActiveFlagTextView.setText(chattingContact.getActive()?"online now":chattingContact.getLastOnlineDate().toString());
+        contactActiveFlagTextView.setText(chattingContact.getIsActive()?"online now":chattingContact.getLastOnlineDate().toString());
         contactNameTextView.setText(chattingContact.getName());
     }
 

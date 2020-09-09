@@ -1,29 +1,63 @@
 package com.example.chatapp;
 
-import com.example.chatapp.globalinfo.Gender;
+import com.google.firebase.database.Exclude;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContactItem
 {
-    private int userID;
+    private String userID;
     private String name;
     private String phoneNumber;
     private String status;
     private Boolean isActive;
     private Date lastOnlineDate;
     private int gender;
-    private int imagePath; // TODO: int for testing, change it to string to be a firebase storage path.
+    private String imagePath; // TODO: int for testing, change it to string to be a firebase storage path.
 
-    public int getImagePath() {
+    public ContactItem() {
+    }
+
+    public ContactItem(String userId, String name, String phoneNumber, String status,
+                       boolean isActive, Date date, int gender, String imgPath) {
+        this.userID = userId;
+        this.name = name;
+        this.phoneNumber = FormatPhoneNumber(phoneNumber);
+        this.status = status;
+        this.isActive = isActive;
+        this.lastOnlineDate = date;
+        this.gender = gender;
+        this.imagePath = imgPath;
+    }
+
+    // use it when you need to write msg object in a database
+    @Exclude
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("userID", userID);
+        result.put("name", name);
+        result.put("status", status);
+        result.put("phoneNumber", phoneNumber);
+        result.put("isActive", isActive);
+        result.put("lastOnlineDate", lastOnlineDate);
+        result.put("gender", gender);
+        result.put("imagePath", imagePath);
+
+
+        return result;
+    }
+
+    public String getImagePath() {
         return imagePath;
     }
 
-    public void setImagePath(int imagePath) {
+    public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
 
-    public ContactItem(int userID, String name, String phoneNumber, String status, Boolean isActive, Date lastOnlineDate, int gender) {
+    public ContactItem(String userID, String name, String phoneNumber, String status, Boolean isActive, Date lastOnlineDate, int gender) {
         this.userID = userID;
         this.name = name;
         this.phoneNumber = FormatPhoneNumber(phoneNumber);
@@ -33,7 +67,7 @@ public class ContactItem
         this.gender = gender;
 
         // TODO: delete this...
-        imagePath = getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
+        imagePath = "-1";
     }
 
     @Override
@@ -58,17 +92,6 @@ public class ContactItem
 
 
     //TODO change this to add image path
-    @Override
-    public int hashCode() {
-        int result = getUserID();
-        result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-        result = 31 * result + (getPhoneNumber() != null ? getPhoneNumber().hashCode() : 0);
-        result = 31 * result + (getStatus() != null ? getStatus().hashCode() : 0);
-        result = 31 * result + (isActive != null ? isActive.hashCode() : 0);
-        result = 31 * result + (getLastOnlineDate() != null ? getLastOnlineDate().hashCode() : 0);
-        result = 31 * result + getGender();
-        return result;
-    }
 
     @Override
     public String toString() {
@@ -83,11 +106,11 @@ public class ContactItem
                 '}';
     }
 
-    public int getUserID() {
+    public String getUserID() {
         return userID;
     }
 
-    public void setUserID(int userID) {
+    public void setUserID(String userID) {
         this.userID = userID;
     }
 
@@ -115,11 +138,11 @@ public class ContactItem
         this.status = status;
     }
 
-    public Boolean getActive() {
+    public Boolean getIsActive() {
         return isActive;
     }
 
-    public void setActive(Boolean active) {
+    public void setIsActive(Boolean active) {
         isActive = active;
     }
 
@@ -153,4 +176,6 @@ public class ContactItem
             return(" ");
         }
     }
+
+
 }
