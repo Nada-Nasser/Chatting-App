@@ -186,12 +186,73 @@ public class ChatRoom extends AppCompatActivity
 
         try {
             sendTextMessage( msgText);
+            sendNotification(msgText);
         }
         catch (Exception e)
         {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
+
+
+        /*
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "CHANNEL_ID")
+                .setSmallIcon(R.drawable.chat_icon)
+                .setContentTitle("chattingNotification.senderPhoneNumber")
+                .setContentText("chattingNotification.msgContent")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(2, builder.build());*/
+
+    }
+
+    private void sendNotification(String msgText)
+    {
+        // sender phone number (MINE)
+        // msg content
+
+        ChattingNotification chattingNotification =
+                new ChattingNotification(chattingContact.getPhoneNumber(), msgText);
+
+        DatabaseReference notificationReference = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(chattingContact.getPhoneNumber()).child("notifications");
+
+        String notificationId = notificationReference.push().getKey();
+
+        Map<String, Object> myRecord = chattingNotification.toMap();
+
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        String path = "/users/"+chattingContact.getPhoneNumber()+"/"+"notifications/";
+
+        childUpdates.put(path + notificationId, myRecord);
+
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        databaseReference.updateChildren(childUpdates)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(),"notify", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+
     }
 
     // writing in the database

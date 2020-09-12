@@ -54,6 +54,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         checkUserDate();
+/*
+        Intent mIntent = new Intent(this, MessagesListenerJobIntentService.class);
+        MessagesListenerJobIntentService.enqueueWork(this, mIntent);
+*/
+    //    startService(new Intent(this, MessagesListenerService.class));
 
         myContactsListView = findViewById(R.id.contacts_list);
 
@@ -77,6 +82,13 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
         //addTestUsers();
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        startService(new Intent(this, MessagesListenerService.class));
     }
 
     private void OpenChatRoom(ContactItem contactItem)

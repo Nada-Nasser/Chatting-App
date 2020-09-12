@@ -8,10 +8,14 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context mContext, Intent intent) {
-        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED))
+        {
+/*
             Intent mIntent = new Intent(mContext, MessagesListenerJobIntentService.class);
-            mIntent.putExtra("maxCountValue", 1000);// TODO: change putExtra values
             MessagesListenerJobIntentService.enqueueWork(mContext, mIntent);
+*/
+            mContext.startService(new Intent(mContext, MessagesListenerService.class));
+
         }
     }
 }
