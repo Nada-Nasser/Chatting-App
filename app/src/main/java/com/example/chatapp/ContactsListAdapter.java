@@ -1,6 +1,8 @@
 package com.example.chatapp;
 
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +10,13 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.example.chatapp.globalinfo.Gender;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -46,7 +54,7 @@ public class ContactsListAdapter extends BaseAdapter
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         view = inflater.inflate( R.layout.contact_list_item, null );
 
-        ImageView contactPicImageView = view.findViewById(R.id.contact_pic);
+        final ImageView contactPicImageView = view.findViewById(R.id.contact_pic);
 
         TextView contactNameTextView = view.findViewById(R.id.contact_name);
 
@@ -55,11 +63,42 @@ public class ContactsListAdapter extends BaseAdapter
         contactNameTextView.setText(contactItem.getName());
         contactLastMsgTextView.setText("Hello, iam " + contactItem.getName());
 
-        int imageResource = contactItem.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
+        if(contactItem.getImagePath().equalsIgnoreCase("none")) //when user has no image
+        {
+            int imageResource = contactItem.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
+            contactPicImageView.setImageResource(imageResource);
+        }
+        else // download the image from firebase storage and load it in the image view using picasso lib.
+        {
+            try
+            {
+                Picasso.get().setLoggingEnabled(true);
 
-        //int imageResource= contactItem.getImagePath();
+                FirebaseStorage.getInstance().getReference(contactItem.getImagePath()).getDownloadUrl()
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception)
+                            {
+                                int imageResource = contactItem.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
+                                contactPicImageView.setImageResource(imageResource);
+                            }
+                        })
+                        .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri downloadUrl)
+                            {
+                                Picasso.get().load(downloadUrl).into(contactPicImageView);
+                                Log.i("TAG", "onSuccess: " + downloadUrl + " ----> " + downloadUrl.toString());
+                            }
+                        });
 
-        contactPicImageView.setImageResource(imageResource);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
 
         // TODO: onClick image view: open the image in a fragment
 

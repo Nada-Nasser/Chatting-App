@@ -23,13 +23,16 @@
         android:paddingRight="2dp"
         android:paddingLeft="2dp">
 
+
+        <!--  android:background="@drawable/contact_item_photo" -->
+
         <ImageView
             android:id="@+id/contact_pic"
             android:layout_gravity="center_vertical"
             android:layout_weight="0"
             android:layout_width="60dp"
-            android:background="@drawable/contact_item_photo"
             android:layout_height="60dp"
+            android:layout_marginRight="5dp"
             android:src="@drawable/male_user"/>
 
         <LinearLayout

@@ -45,4 +45,6 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-database:19.4.0'
 
+    implementation 'com.mikhaellopez:circularimageview:4.2.0'
+
 }

@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity
     ImageView userPicImageView;
     EditText userPhoneNumberEditText;
     int userGender;
-    private String attachedImageURL = null;
+    private String attachedImageURL = "none";
 
     private FirebaseAuth firebaseAuth;
 
@@ -128,8 +128,6 @@ public class LoginActivity extends AppCompatActivity
         LoggedInUser.saveUserDate(this,userPhoneNumberEditText.getText().toString()
         ,"you",attachedImageURL,firebaseAuth.getCurrentUser().getUid(),userGender);
 
-
-        // TODO: check if image equals null.
 
         // TODO: step1: logged in using Firebase Auth (with phone number). and delete the Anonymous user
 

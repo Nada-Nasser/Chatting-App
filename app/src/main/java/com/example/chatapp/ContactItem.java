@@ -14,7 +14,7 @@ public class ContactItem
     private Boolean isActive;
     //private Date lastOnlineDate;
     private int gender;
-    private String imagePath; // TODO: int for testing, change it to string to be a firebase storage path.
+    private String imagePath;
 
     public ContactItem() {
     }
@@ -65,23 +65,20 @@ public class ContactItem
        // this.lastOnlineDate = lastOnlineDate;
         this.gender = gender;
 
-        // TODO: delete this...
-        imagePath = "-1";
+        imagePath = "none";
     }
 
-
-    //TODO change this to add image path
 
     @Override
     public String toString() {
         return "ContactItem{" +
-                "userID=" + userID +
+                "userID='" + userID + '\'' +
                 ", name='" + name + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", status='" + status + '\'' +
                 ", isActive=" + isActive +
-      //          ", lastOnlineDate=" + lastOnlineDate +
                 ", gender=" + gender +
+                ", imagePath='" + imagePath + '\'' +
                 '}';
     }
 

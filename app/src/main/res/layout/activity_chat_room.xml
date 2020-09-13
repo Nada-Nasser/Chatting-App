@@ -9,6 +9,7 @@
     android:weightSum="4">
 
     <LinearLayout
+        android:paddingLeft="5dp"
         android:onClick="onClickContactInfo"
         android:background="@color/lightBlue"
         android:id="@+id/headerBar"
@@ -17,19 +18,20 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="70dp">
-        
+
+        <!--            android:background="@drawable/contact_item_photo"-->
+
         <ImageView
             android:id="@+id/contact_pic"
             android:layout_margin="5dp"
             android:layout_gravity="center_vertical"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/male_user"
-            android:background="@drawable/contact_item_photo"/>
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/male_user"/>
         
         <LinearLayout
             android:gravity="center_vertical"
-            android:layout_marginLeft="20sp"
+            android:layout_marginLeft="10sp"
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="match_parent">

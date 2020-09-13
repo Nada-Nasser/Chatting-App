@@ -54,11 +54,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         checkUserDate();
-/*
-        Intent mIntent = new Intent(this, MessagesListenerJobIntentService.class);
-        MessagesListenerJobIntentService.enqueueWork(this, mIntent);
-*/
-    //    startService(new Intent(this, MessagesListenerService.class));
 
         myContactsListView = findViewById(R.id.contacts_list);
 
@@ -106,10 +101,9 @@ public class MainActivity extends AppCompatActivity
         //chattingRoomIntent.putExtra("lastOnlineDate",contactItem.getLastOnlineDate().getTime());
 
         chattingRoomIntent.putExtra("gender",contactItem.getGender());
-        // TODO: send image path too)
+        chattingRoomIntent.putExtra("imagePath",contactItem.getImagePath());
 
         startActivity(chattingRoomIntent);
-
     }
 
 
@@ -162,7 +156,7 @@ public class MainActivity extends AppCompatActivity
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                         // key = phoneNumber, value = FirebaseChattingMessage
                         String Number = childSnapshot.getKey();
-                        // TODO: get his Info
+
                         Log.i("Numbers" , Number);
 
                         if (Number != null) {
@@ -189,13 +183,13 @@ public class MainActivity extends AppCompatActivity
                             // in case the phone number is one of my contacts.
                             if (keyNumber.contains(cs.getPhoneNumber()))
                             {
-                                ContactItem c = new ContactItem("unKnown",cs.name,keyNumber,"unKnown",false,1,"-1");
+                                ContactItem c = new ContactItem("unKnown",cs.name,keyNumber,"unKnown",false,1,"none");
                                 if (c!=null)
                                 {
                                     flag = true;
                                     c.setName(cs.name);
                                     myContactsList.add(c);
-                                    startContactInfoListener(c , myContactsList.size()-1);
+                                    startContactInfoListener(c , myContactsList.size()-1); // to get the contacts info
                                     Toast.makeText(getApplicationContext(), "SHOW : " + cs.getPhoneNumber() + ":" + cs.getName(), Toast.LENGTH_SHORT).show();
                                     break;
                                 }
@@ -346,7 +340,8 @@ public class MainActivity extends AppCompatActivity
 
         String name = LoggedInUser.getPhoneNumber();
         String phoneNumber = LoggedInUser.getPhoneNumber();
-        String status = "Iam fine"; // TODO set a real value
+        String status = "Iam fine";
+        // TODO set a real status value (do this after adding setting menu item)
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         myInfo  = new ContactItem(userId,name,phoneNumber,status,true,gender,imgPath);

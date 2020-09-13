@@ -1,6 +1,7 @@
 package com.example.chatapp.chattingroom;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +11,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.example.chatapp.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -66,9 +73,10 @@ public class MessagesListAdapter extends BaseAdapter
 
             //int img = msg.getPhotoPath();
 
-            if(msg.getPhotoPath() != null) {
-                if (Integer.parseInt(msg.getPhotoPath()) != -1)
-                    msgPhoto.setImageResource(R.drawable.male_user); // TODO Load From Firebase storage and use picasso
+            if(msg.getPhotoPath() != null)
+            {
+                if (Integer.parseInt(msg.getPhotoPath()) != -1 || !msg.getPhotoPath().equalsIgnoreCase("none"))
+                    updateMessageImageView(msgPhoto , msg.getPhotoPath()); // TODO:(Testing Now) Load From Firebase storage and use picasso
                 else
                     msgPhoto.setVisibility(View.GONE);
             }
@@ -90,4 +98,34 @@ public class MessagesListAdapter extends BaseAdapter
         else
             return null;
     }
+
+    void updateMessageImageView(final ImageView imageView , String imagePath)
+    {
+        // download the image from firebase storage and load it in the image view using picasso lib.
+        try
+        {
+            Picasso.get().setLoggingEnabled(true);
+
+            FirebaseStorage.getInstance().getReference(imagePath).getDownloadUrl()
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception)
+                        {
+                            // TODO
+                        }
+                    })
+                    .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri downloadUrl)
+                        {
+                            Picasso.get().load(downloadUrl).into(imageView);
+                        }
+                    });
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 }
