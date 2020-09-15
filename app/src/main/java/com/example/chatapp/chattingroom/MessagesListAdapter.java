@@ -58,6 +58,16 @@ public class MessagesListAdapter extends BaseAdapter
 
             TextMessage msg = ((TextMessage) messages.get(i));
 
+            ImageView msgPhoto = view.findViewById(R.id.msgPhoto);
+            if (msg.getPhotoPath().equals("none"))
+            {
+                msgPhoto.setVisibility(View.GONE);
+            }
+            else {
+                msgPhoto.setVisibility(View.VISIBLE);
+                updateMessageImageView(msgPhoto, msg.getPhotoPath());
+            }
+
             LinearLayout msgLayout = view.findViewById(R.id.textMsgLayout);
             LinearLayout msgContentLayout = view.findViewById(R.id.msgContentLayout);
 
@@ -69,21 +79,7 @@ public class MessagesListAdapter extends BaseAdapter
                 msgContentLayout.setBackgroundResource(R.drawable.background_lightyellow_chattingmsg);
             }
 
-            ImageView msgPhoto = view.findViewById(R.id.msgPhoto);
 
-            //int img = msg.getPhotoPath();
-
-            if(msg.getPhotoPath() != null)
-            {
-                if (Integer.parseInt(msg.getPhotoPath()) != -1 || !msg.getPhotoPath().equalsIgnoreCase("none"))
-                    updateMessageImageView(msgPhoto , msg.getPhotoPath()); // TODO:(Testing Now) Load From Firebase storage and use picasso
-                else
-                    msgPhoto.setVisibility(View.GONE);
-            }
-            else
-            {
-                msgPhoto.setVisibility(View.GONE);
-            }
 
             TextView msgText = view.findViewById(R.id.msgText);
             msgText.setText(msg.getText());
@@ -119,6 +115,7 @@ public class MessagesListAdapter extends BaseAdapter
                         public void onSuccess(Uri downloadUrl)
                         {
                             Picasso.get().load(downloadUrl).into(imageView);
+
                         }
                     });
         }

@@ -27,10 +27,8 @@ import com.example.chatapp.R;
 import com.example.chatapp.globalinfo.Gender;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -277,10 +275,10 @@ public class ChatRoom extends AppCompatActivity
         String photoPath = attachedImagePath;
 
         FirebaseChattingMessage myFirebaseChattingMessage = new FirebaseChattingMessage(msgId,
-                true, TextMessage.class.getName(),sentTime.getTime(),photoPath,msgText, "-1");
+                true, TextMessage.class.getName(),sentTime.getTime(),photoPath,msgText, "none");
 
         FirebaseChattingMessage contactFirebaseChattingMessage = new FirebaseChattingMessage(msgId,
-                false, TextMessage.class.getName(),sentTime.getTime(),photoPath,msgText, "-1");
+                false, TextMessage.class.getName(),sentTime.getTime(),photoPath,msgText, "none");
 
         Map<String, Object> myRecord = myFirebaseChattingMessage.toMap();
         String myPath = "/users/"+LoggedInUser.getPhoneNumber()
@@ -410,8 +408,9 @@ public class ChatRoom extends AppCompatActivity
     {
         if (requestCode == RESULT_LOAD_IMAGE_CODE && resultCode == RESULT_OK && null != data)
         {
+            MyProgressDialogManager.showProgressDialog(this);
+
             try {
-                MyProgressDialogManager.showProgressDialog(this);
 
                 Uri selectedImageUri = data.getData();
                 String[] dataPath = {MediaStore.Images.Media.DATA};
@@ -438,10 +437,10 @@ public class ChatRoom extends AppCompatActivity
 
     private void uploadImage(Bitmap bitmap)
     {
+        MyProgressDialogManager.showProgressDialog(this);
         try {
 
             final Bitmap imageBitmapCopy = bitmap;
-            MyProgressDialogManager.showProgressDialog(this);
 
             DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
             Date dateobj = new Date();
@@ -464,18 +463,10 @@ public class ChatRoom extends AppCompatActivity
                 @Override
                 public void onFailure(@NonNull Exception exception)
                 {
-                    MyProgressDialogManager.hideProgressDialog();
-                    Toast.makeText(getApplicationContext(),"couldn't Attach the image " + exception.getMessage()  , Toast.LENGTH_SHORT).show();
-                }
-            })
-                    .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>()
-                    {
-                        @Override
-                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task)
-                        {
-                            MyProgressDialogManager.hideProgressDialog();
+                        MyProgressDialogManager.hideProgressDialog();
+                        Toast.makeText(getApplicationContext(),"couldn't Attach the image " + exception.getMessage()  , Toast.LENGTH_SHORT).show();
                         }
-                    })
+            })
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
                     {
                         @Override

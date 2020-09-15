@@ -446,9 +446,12 @@ public class MainActivity extends AppCompatActivity
                         }
 
                         // Update firebase
-                        if(cNumber.equalsIgnoreCase("No NNumber"))
+                        if(!cNumber.equalsIgnoreCase("No number"))
                         {
                             ContactItem contact = getContactInfo(cNumber);
+                            OpenChattingRoomWithContactIfExists(cNumber);
+
+/*
                             if(contact != null)
                             {
                                 contact.setName(name);
@@ -457,7 +460,7 @@ public class MainActivity extends AppCompatActivity
                             else
                             {
                                 Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
-                            }
+                            }*/
                         }
                         else
                         {
@@ -468,6 +471,29 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
+    }
+
+    private void OpenChattingRoomWithContactIfExists(String cNumber)
+    {
+        MyProgressDialogManager.showProgressDialog(this);
+        FirebaseDatabase.getInstance().getReference().child("users").child(cNumber).child("userInfo")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        ContactItem contactItem  = snapshot.getValue(ContactItem.class);
+
+                        OpenChatRoom(contactItem);
+                        MyProgressDialogManager.hideProgressDialog();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
+                    }
+
+                });
+
     }
 
 

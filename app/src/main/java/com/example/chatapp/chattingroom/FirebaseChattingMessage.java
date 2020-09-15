@@ -21,7 +21,7 @@ public class FirebaseChattingMessage
         this.sentByMe = sentByMe;
         this.type = type;
         this.sentTime = sentTime;
-        this.photoPath = photoPath;
+        this.photoPath = (photoPath != null)?photoPath:"none";
         this.text = text;
         this.audioPath = audioPath;
     }
