@@ -107,8 +107,6 @@ public class ChatRoom extends AppCompatActivity
         }
     }
 
-
-
     private void loadMessages()
     {
         chattingReference.addValueEventListener(new ValueEventListener() {
@@ -131,7 +129,6 @@ public class ChatRoom extends AppCompatActivity
                                {}
                                else if(TextMessage.class.getName().equalsIgnoreCase(msg.type))
                                {
-
                                    DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
                                    Date dateobj = new Date(); // TODO fetch msg.sentTime
 
@@ -224,7 +221,7 @@ public class ChatRoom extends AppCompatActivity
         textInputMsgEditText.setText("");
 
         try {
-            sendTextMessage( msgText);
+            sendTextMessage( msgText); // TODO sent current date as sentTime
             sendNotification(msgText);
         }
         catch (Exception e)
@@ -341,15 +338,17 @@ public class ChatRoom extends AppCompatActivity
 
     private void useAudio()
     {
+        // TODO: push audio msg to firebase and use its path to save the audio msg here.
+
         try {
             if (!isRecording) {
-                audioMessagesManager.onRecord(true);
+                audioMessagesManager.onRecord(true , "audiorecordtest");
                 audioMsgButton.setImageResource(R.drawable.active_voice_recorder_icon);
                 Toast.makeText(getApplicationContext(), "Start recording your voice, press again to stop recording", Toast.LENGTH_LONG).show();
             } else {
-                audioMessagesManager.onRecord(false);
+                audioMessagesManager.onRecord(false , "audiorecordtest");
                 audioMsgButton.setImageResource(R.drawable.mic_icon_blue);
-                   audioMessagesManager.onPlay(true);
+                   audioMessagesManager.onPlay(true , "audiorecordtest");
             }
         }
         catch (Exception e)
@@ -357,7 +356,6 @@ public class ChatRoom extends AppCompatActivity
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage() , Toast.LENGTH_LONG).show();
         }
-
         isRecording = !isRecording;
     }
 

@@ -18,9 +18,11 @@ public class AudioMessagesManager
 
     // start = true -> means that the record will start recording
     // else -> means the record will stop recording
-    public void onRecord(boolean start) {
+    public void onRecord(boolean start , String path)
+    {
+        String newPath = fileName + "/" + path + ".3gp";
         if (start) {
-            startRecording();
+            startRecording(newPath);
         } else {
             stopRecording();
         }
@@ -28,20 +30,23 @@ public class AudioMessagesManager
 
     // start = true -> means that the mediaPlayer will start playing the audio
     // else -> means the mediaPlayer will stop the audio
-    public void onPlay(boolean start) {
+    public void onPlay(boolean start , String path)
+    {
+        String newPath = fileName + "/" + path + ".3gp";
+
         if (start) {
-            startPlaying();
+            startPlaying(newPath);
         } else {
             stopPlaying();
         }
     }
 
-    private void startPlaying()
+    private void startPlaying(String path)
     {
         player = new MediaPlayer();
 
         try {
-            player.setDataSource(fileName);
+            player.setDataSource(path);
             player.prepare();
             player.start();
         } catch (IOException e) {
@@ -54,13 +59,13 @@ public class AudioMessagesManager
         player = null;
     }
 
-    private void startRecording()
+    private void startRecording(String newPath)
     {
         recorder = new MediaRecorder();
 
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        recorder.setOutputFile(fileName);
+        recorder.setOutputFile(newPath);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
         try {
@@ -87,7 +92,7 @@ public class AudioMessagesManager
     private void onCreateAudioManager(Context context)
     {
         fileName = context.getExternalCacheDir().getAbsolutePath();
-        fileName += "/audiorecordtest.3gp";
+       // fileName += "/audiorecordtest.3gp";
     }
 
     public void stopAudioManager()

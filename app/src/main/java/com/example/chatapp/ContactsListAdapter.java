@@ -99,9 +99,6 @@ public class ContactsListAdapter extends BaseAdapter
             }
         }
 
-
-        // TODO: onClick image view: open the image in a fragment
-
         return view;
     }
 }
