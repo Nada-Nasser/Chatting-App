@@ -11,10 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-
 import com.example.chatapp.R;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.squareup.picasso.Picasso;
@@ -65,6 +62,7 @@ public class MessagesListAdapter extends BaseAdapter
             }
             else {
                 msgPhoto.setVisibility(View.VISIBLE);
+                msgPhoto.setImageResource(R.drawable.loading_icon);
                 updateMessageImageView(msgPhoto, msg.getPhotoPath());
             }
 
@@ -103,13 +101,6 @@ public class MessagesListAdapter extends BaseAdapter
             Picasso.get().setLoggingEnabled(true);
 
             FirebaseStorage.getInstance().getReference(imagePath).getDownloadUrl()
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception exception)
-                        {
-                            // TODO
-                        }
-                    })
                     .addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri downloadUrl)

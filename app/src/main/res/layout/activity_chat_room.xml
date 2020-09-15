@@ -82,6 +82,7 @@
         android:layout_height="70dp">
 
         <ImageView
+            android:id="@+id/audioMsgButton"
             android:onClick="onClickSendVoice"
             android:layout_gravity="center_vertical"
             android:layout_width="50dp"

@@ -1,5 +1,6 @@
 package com.example.chatapp.chattingroom;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -52,6 +53,7 @@ public class ChatRoom extends AppCompatActivity
 {
     private static final int REQUEST_READ_STORAGE_CODE_PERMISSIONS = 111;
     private static final int RESULT_LOAD_IMAGE_CODE = 112;
+    private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
     String attachedImagePath = "none";
     ContactItem chattingContact;
@@ -63,10 +65,12 @@ public class ChatRoom extends AppCompatActivity
     TextView contactNameTextView;
     TextView contactActiveFlagTextView;
     ListView messagesListView;
+    ImageView audioMsgButton;
 
     EditText textInputMsgEditText;
 
     DatabaseReference chattingReference;
+    AudioMessagesManager audioMessagesManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +83,7 @@ public class ChatRoom extends AppCompatActivity
             contactActiveFlagTextView = findViewById(R.id.onlineFlag);
             messagesListView = findViewById(R.id.chattingList);
             textInputMsgEditText = findViewById(R.id.chattingTextInput);
+            audioMsgButton = findViewById(R.id.audioMsgButton);
 
             messagesList = new ArrayList<>();
             messagesListAdapter = new MessagesListAdapter(this,messagesList);
@@ -94,12 +99,15 @@ public class ChatRoom extends AppCompatActivity
                 .child(String.valueOf(chattingContact.getPhoneNumber()));
 
             loadMessages();
+            audioMessagesManager = new AudioMessagesManager(this);
         }catch (Exception e)
         {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
     }
+
+
 
     private void loadMessages()
     {
@@ -311,9 +319,52 @@ public class ChatRoom extends AppCompatActivity
                 });
     }
 
+    boolean isRecording = false;
     public void onClickSendVoice(View view)
     {
+        CheckAudioPermissions();
+    }
 
+    private void CheckAudioPermissions()
+    {
+        if ( Build.VERSION.SDK_INT >= 23){
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) !=
+                    PackageManager.PERMISSION_GRANTED  ){
+                requestPermissions(new String[]{
+                                Manifest.permission.RECORD_AUDIO},
+                        REQUEST_RECORD_AUDIO_CODE_PERMISSIONS);
+                return ;
+            }
+        }
+        useAudio();// init the contact list
+    }
+
+    private void useAudio()
+    {
+        try {
+            if (!isRecording) {
+                audioMessagesManager.onRecord(true);
+                audioMsgButton.setImageResource(R.drawable.active_voice_recorder_icon);
+                Toast.makeText(getApplicationContext(), "Start recording your voice, press again to stop recording", Toast.LENGTH_LONG).show();
+            } else {
+                audioMessagesManager.onRecord(false);
+                audioMsgButton.setImageResource(R.drawable.mic_icon_blue);
+                   audioMessagesManager.onPlay(true);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),e.getMessage() , Toast.LENGTH_LONG).show();
+        }
+
+        isRecording = !isRecording;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        audioMessagesManager.stopAudioManager();
     }
 
     public void onClickContactInfo(View view)
@@ -383,13 +434,23 @@ public class ChatRoom extends AppCompatActivity
         switch (requestCode) {
             case REQUEST_READ_STORAGE_CODE_PERMISSIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    pickImage();// init the contact list
+                    pickImage();
                 } else {
                     // Permission Denied
                     Toast.makeText( this,"You can not put image without this permissions" , Toast.LENGTH_SHORT)
                             .show();
                 }
                 break;
+            case REQUEST_RECORD_AUDIO_CODE_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    useAudio();
+                } else {
+                    // Permission Denied
+                    Toast.makeText( this,"You can not put image without this permissions" , Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }

@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class TextMessage extends ChattingMessage
 {
-    private String photoPath; // TODO : change data type to string
+    private String photoPath;
     private String text;
 
     public TextMessage(String photoPath, String text, String msgId, Date sentTime, boolean sentByMe)
