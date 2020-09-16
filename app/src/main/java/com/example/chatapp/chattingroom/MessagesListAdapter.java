@@ -9,13 +9,19 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.example.chatapp.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class MessagesListAdapter extends BaseAdapter
@@ -77,8 +83,6 @@ public class MessagesListAdapter extends BaseAdapter
                 msgContentLayout.setBackgroundResource(R.drawable.background_lightyellow_chattingmsg);
             }
 
-
-
             TextView msgText = view.findViewById(R.id.msgText);
             msgText.setText(msg.getText());
 
@@ -86,7 +90,36 @@ public class MessagesListAdapter extends BaseAdapter
         }
         else if(messages.get(i) instanceof AudioMessage)
         {
-            view = inflater.inflate(R.layout.audio_message_list_item, null);
+            final AudioMessage msg = ((AudioMessage) messages.get(i));
+            view = inflater.inflate(R.layout.audio_my_message_list_item, null);
+            LinearLayout AudioMsgLayout = view.findViewById(R.id.AudioMsgLayout);
+            LinearLayout AudioMsgLayoutContent = view.findViewById(R.id.AudioMsgLayoutContent);
+
+            if (msg.sentByMe) {
+                AudioMsgLayout.setGravity(Gravity.RIGHT);
+                AudioMsgLayoutContent.setBackgroundResource(R.drawable.background_lightblue_chattingmsg);
+            } else {
+                AudioMsgLayout.setGravity(Gravity.LEFT);
+                AudioMsgLayoutContent.setBackgroundResource(R.drawable.background_lightyellow_chattingmsg);
+            }
+
+            ImageView audioIcon = view.findViewById(R.id.audioIcon);
+
+            audioIcon.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                        downloadAudioFileFromFirebaseStorage(msg.getAttachingPath());
+
+                }
+            });
+
+            SeekBar msgSeekBar = view.findViewById(R.id.msgSeekBar);
+            TextView msgDuration = view.findViewById(R.id.msgDuration);
+
+
+
             return view;
         }
         else
@@ -116,4 +149,32 @@ public class MessagesListAdapter extends BaseAdapter
         }
     }
 
+    File downloadAudioFileFromFirebaseStorage(String audioPath)
+    {
+        try {
+            final File localFile = File.createTempFile("audio", "jpg");
+
+            FirebaseStorage.getInstance().getReference(audioPath).getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot)
+                {
+                    // Local temp file has been created
+                    AudioMessagesPlayer audioMessagesPlayer = new AudioMessagesPlayer(context);
+                    audioMessagesPlayer.onPlay(localFile.getAbsolutePath());
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle any errors
+                }
+            });
+
+            return localFile;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -7,9 +7,10 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class AudioMessagesManager
+public class AudioMessagesRecorder
 {
     private static final String LOG_TAG = "AudioRecordTest";
+    static Context context;
 
     private static String fileName = null;
 
@@ -20,9 +21,10 @@ public class AudioMessagesManager
     // else -> means the record will stop recording
     public void onRecord(boolean start , String path)
     {
-        String newPath = fileName + "/" + path + ".3gp";
+        fileName = context.getFilesDir().getAbsolutePath() + "/" + path + ".3gp";
+
         if (start) {
-            startRecording(newPath);
+            startRecording(fileName);
         } else {
             stopRecording();
         }
@@ -32,10 +34,11 @@ public class AudioMessagesManager
     // else -> means the mediaPlayer will stop the audio
     public void onPlay(boolean start , String path)
     {
-        String newPath = fileName + "/" + path + ".3gp";
+        //String newPath = fileName + "/" + path + ".3gp";
+        fileName = context.getFilesDir().getAbsolutePath() + "/" + path + ".3gp";
 
         if (start) {
-            startPlaying(newPath);
+            startPlaying(fileName);
         } else {
             stopPlaying();
         }
@@ -83,7 +86,7 @@ public class AudioMessagesManager
         recorder = null;
     }
 
-    public AudioMessagesManager(Context context)
+    public AudioMessagesRecorder(Context context)
     {
         recorder = new MediaRecorder();
         onCreateAudioManager(context);
@@ -91,8 +94,13 @@ public class AudioMessagesManager
 
     private void onCreateAudioManager(Context context)
     {
-        fileName = context.getExternalCacheDir().getAbsolutePath();
-       // fileName += "/audiorecordtest.3gp";
+        this.context = context;
+        fileName = context.getFilesDir().getAbsolutePath();
+    }
+
+    public String getLastRecordedAudioFilePath()
+    {
+        return fileName;
     }
 
     public void stopAudioManager()

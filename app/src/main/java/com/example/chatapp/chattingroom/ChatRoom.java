@@ -28,25 +28,30 @@ import com.example.chatapp.R;
 import com.example.chatapp.globalinfo.Gender;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class ChatRoom extends AppCompatActivity
@@ -56,6 +61,8 @@ public class ChatRoom extends AppCompatActivity
     private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
     String attachedImagePath = "none";
+    String attachedAudioPath = "none";
+    String lastRecordedAudioFileName = "none";
     ContactItem chattingContact;
 
     ArrayList<ChattingMessage> messagesList;
@@ -70,7 +77,7 @@ public class ChatRoom extends AppCompatActivity
     EditText textInputMsgEditText;
 
     DatabaseReference chattingReference;
-    AudioMessagesManager audioMessagesManager;
+    AudioMessagesRecorder audioMessagesRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +106,7 @@ public class ChatRoom extends AppCompatActivity
                 .child(String.valueOf(chattingContact.getPhoneNumber()));
 
             loadMessages();
-            audioMessagesManager = new AudioMessagesManager(this);
+            audioMessagesRecorder = new AudioMessagesRecorder(this);
         }catch (Exception e)
         {
             e.printStackTrace();
@@ -126,7 +133,13 @@ public class ChatRoom extends AppCompatActivity
                             if(msg != null)
                             {
                                if(AudioMessage.class.getName().equalsIgnoreCase(msg.type))
-                               {}
+                               {
+                                   //(String msgId, Date sentTime, boolean sentByMe, String attachingPath)
+                                   DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
+                                   Date dateobj = new Date(); // TODO fetch msg.sentTime
+
+                                   messagesList.add(new AudioMessage(msg.messageID , dateobj , msg.sentByMe,msg.audioPath));
+                               }
                                else if(TextMessage.class.getName().equalsIgnoreCase(msg.type))
                                {
                                    DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
@@ -316,6 +329,51 @@ public class ChatRoom extends AppCompatActivity
                 });
     }
 
+    private void sendLastRecordedAudioMessage()
+    {
+        String msgId = chattingReference.push().getKey();
+        Date sentTime = getCurrentDate();
+        String audioPath = attachedAudioPath;
+
+        FirebaseChattingMessage myFirebaseChattingMessage = new FirebaseChattingMessage(msgId,
+                true, AudioMessage.class.getName(),sentTime.getTime(),"none","none", audioPath);
+
+        FirebaseChattingMessage contactFirebaseChattingMessage = new FirebaseChattingMessage(msgId,
+                false, AudioMessage.class.getName(),sentTime.getTime(),"none","none", audioPath);
+
+        Map<String, Object> myRecord = myFirebaseChattingMessage.toMap();
+        String myPath = "/users/"+LoggedInUser.getPhoneNumber()
+                +"/chats/"+chattingContact.getPhoneNumber()+"/";
+
+        Map<String, Object> contactRecord = contactFirebaseChattingMessage.toMap();
+        String contactPath = "/users/"+chattingContact.getPhoneNumber()
+                +"/chats/"+LoggedInUser.getPhoneNumber() + "/";
+
+        Map<String, Object> childUpdates = new HashMap<>();
+
+        childUpdates.put(myPath + msgId, myRecord);
+        childUpdates.put(contactPath+ msgId, contactRecord);
+
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        databaseReference.updateChildren(childUpdates)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(),"Done", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+
+
     boolean isRecording = false;
     public void onClickSendVoice(View view)
     {
@@ -341,14 +399,28 @@ public class ChatRoom extends AppCompatActivity
         // TODO: push audio msg to firebase and use its path to save the audio msg here.
 
         try {
-            if (!isRecording) {
-                audioMessagesManager.onRecord(true , "audiorecordtest");
+            if (!isRecording)
+            {
+                Date cDate = getCurrentDate();
+                lastRecordedAudioFileName = LoggedInUser.getPhoneNumber()+"_"+dateToStringFormatter(cDate);
+
+                audioMessagesRecorder.onRecord(true , lastRecordedAudioFileName);
                 audioMsgButton.setImageResource(R.drawable.active_voice_recorder_icon);
                 Toast.makeText(getApplicationContext(), "Start recording your voice, press again to stop recording", Toast.LENGTH_LONG).show();
-            } else {
-                audioMessagesManager.onRecord(false , "audiorecordtest");
+            }
+            else
+            {
+                audioMessagesRecorder.onRecord(false , lastRecordedAudioFileName);
                 audioMsgButton.setImageResource(R.drawable.mic_icon_blue);
-                   audioMessagesManager.onPlay(true , "audiorecordtest");
+
+                uploadAudioToFirebaseStorage(audioMessagesRecorder.getLastRecordedAudioFilePath());
+                // TODO CREATE FirebaseChattingMessage.
+
+                sendLastRecordedAudioMessage();
+                sendNotification(chattingContact.getName() + " sent you voice note..");
+
+                //audioMessagesRecorder.onPlay(true , lastRecordedAudioFileName);
+                // TODO lastRecordedAudioFileName = "none";
             }
         }
         catch (Exception e)
@@ -362,7 +434,7 @@ public class ChatRoom extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        audioMessagesManager.stopAudioManager();
+        audioMessagesRecorder.stopAudioManager();
     }
 
     public void onClickContactInfo(View view)
@@ -553,4 +625,65 @@ public class ChatRoom extends AppCompatActivity
         }
     }
 
+
+    private void uploadAudioToFirebaseStorage(String audioPath)
+    {
+        MyProgressDialogManager.showProgressDialog(this);
+
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setContentType("audio/mpeg")
+                .build();
+
+        Uri file = Uri.fromFile(new File(audioPath));
+
+        final StorageReference riversRef = FirebaseStorage.getInstance().getReferenceFromUrl("gs://chatapp-dfb4b.appspot.com")
+                .child("voiceNotes/"+ this.lastRecordedAudioFileName);
+
+        UploadTask uploadTask = riversRef.putFile(file , metadata);
+
+        // Register observers to listen for when the download is done or if it fails
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception)
+            {
+                // Handle unsuccessful uploads
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
+                // ...
+                try {
+                    attachedAudioPath =  riversRef.getPath();
+                    Toast.makeText(getApplicationContext(),"Audio Attached" , Toast.LENGTH_SHORT).show();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),"couldn't Attached the audio" , Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                MyProgressDialogManager.hideProgressDialog();
+            }
+        });
+    }
+
+    Date getCurrentDate()
+    {
+        Date c = Calendar.getInstance().getTime();
+        System.out.println("Current time => " + c);
+
+        return c;
+    }
+
+    String dateToStringFormatter(Date date)
+    {
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault());
+        String formattedDate = df.format(date);
+
+        return  formattedDate;
+    }
 }

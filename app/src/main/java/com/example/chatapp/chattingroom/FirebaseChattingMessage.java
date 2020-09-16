@@ -11,9 +11,9 @@ public class FirebaseChattingMessage
     public boolean sentByMe;
     public String type; // audio, text
     public Long sentTime;
-    public String photoPath;
+    public String photoPath; // downloadUrl from firebase storage (attached path)
     public String text;
-    public String audioPath;
+    public String audioPath; // downloadUrl from firebase storage (attached path)
 
     public FirebaseChattingMessage(String messageID, boolean sentByMe, String type, Long sentTime, String photoPath, String text, String audioPath)
     {
