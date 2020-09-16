@@ -13,14 +13,14 @@
     <LinearLayout
         android:id="@+id/AudioMsgLayoutContent"
         android:background="@drawable/background_lightblue_chattingmsg"
-        android:layout_width="260dp"
+        android:layout_width="300dp"
         android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/audioIcon"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/audio_msg_icon"/>
+            android:src="@drawable/blue_loading"/>
 
         <LinearLayout
             android:layout_margin="10dp"

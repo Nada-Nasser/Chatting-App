@@ -1,5 +1,6 @@
 package com.example.chatapp.chattingroom;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.view.Gravity;
@@ -22,17 +23,26 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class MessagesListAdapter extends BaseAdapter
 {
     Context context;
     ArrayList<ChattingMessage> messages;
+    Activity activity;
+    AudioMessagesPlayer audioMessagesPlayer;
 
     public MessagesListAdapter(Context context, ArrayList<ChattingMessage> messages)
     {
+        this.activity = (Activity) context;
         this.context = context;
         this.messages = messages;
+        audioMessagesPlayer = new AudioMessagesPlayer(context);
     }
 
     @Override
@@ -90,6 +100,7 @@ public class MessagesListAdapter extends BaseAdapter
         }
         else if(messages.get(i) instanceof AudioMessage)
         {
+
             final AudioMessage msg = ((AudioMessage) messages.get(i));
             view = inflater.inflate(R.layout.audio_my_message_list_item, null);
             LinearLayout AudioMsgLayout = view.findViewById(R.id.AudioMsgLayout);
@@ -103,22 +114,31 @@ public class MessagesListAdapter extends BaseAdapter
                 AudioMsgLayoutContent.setBackgroundResource(R.drawable.background_lightyellow_chattingmsg);
             }
 
-            ImageView audioIcon = view.findViewById(R.id.audioIcon);
+            final ImageView audioIcon = view.findViewById(R.id.audioIcon);
+            final SeekBar msgSeekBar = view.findViewById(R.id.msgSeekBar);
+            final TextView msgDuration = view.findViewById(R.id.msgDuration);
+
+            final myThread thread = new myThread(msgSeekBar , msgDuration);
+
+
+            final File file = downloadAudioFileFromFirebaseStorage(msg.getAttachingPath() ,audioIcon , msgSeekBar , msgDuration);
 
             audioIcon.setOnClickListener(new View.OnClickListener()
             {
                 @Override
                 public void onClick(View view)
                 {
-                        downloadAudioFileFromFirebaseStorage(msg.getAttachingPath());
+                    try {
+                        audioMessagesPlayer.onPlay(file.getAbsolutePath());
+                        thread.start();
+                     //TODO   audioIcon.setImageResource(R.drawable.active_voice_recorder_icon);
 
+                    }catch (Exception e)
+                    {
+                        audioMessagesPlayer.isPlaying = false;
+                    }
                 }
             });
-
-            SeekBar msgSeekBar = view.findViewById(R.id.msgSeekBar);
-            TextView msgDuration = view.findViewById(R.id.msgDuration);
-
-
 
             return view;
         }
@@ -149,7 +169,8 @@ public class MessagesListAdapter extends BaseAdapter
         }
     }
 
-    File downloadAudioFileFromFirebaseStorage(String audioPath)
+    File downloadAudioFileFromFirebaseStorage(String audioPath , final ImageView audioIcon , final SeekBar msgSeekBar,
+                                              final TextView msgDuration)
     {
         try {
             final File localFile = File.createTempFile("audio", "jpg");
@@ -159,8 +180,15 @@ public class MessagesListAdapter extends BaseAdapter
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot)
                 {
                     // Local temp file has been created
-                    AudioMessagesPlayer audioMessagesPlayer = new AudioMessagesPlayer(context);
-                    audioMessagesPlayer.onPlay(localFile.getAbsolutePath());
+
+                    audioIcon.setImageResource(R.drawable.audio_msg_icon);
+
+                    audioMessagesPlayer.prePlay(localFile.getAbsolutePath());
+
+                    msgSeekBar.setMax(audioMessagesPlayer.getPlayer().getDuration());
+
+                    msgDuration.setText(TimeFormatter(audioMessagesPlayer.getPlayer().getDuration()));
+
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -177,4 +205,63 @@ public class MessagesListAdapter extends BaseAdapter
             return null;
         }
     }
+
+    class myThread extends Thread
+    {
+        SeekBar seekBar;
+        TextView progressTextView;
+        public myThread(SeekBar seekBar , TextView progressTextView)
+        {
+            this.progressTextView = progressTextView;
+            this.seekBar = seekBar;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                activity.runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run() {
+                        if (audioMessagesPlayer.getPlayer() != null) {
+                            int progress = audioMessagesPlayer.getPlayer().getCurrentPosition();
+                            seekBar.setProgress(progress);
+                            progressTextView.setText(TimeFormatter(progress));
+
+                            int max = audioMessagesPlayer.getPlayer().getDuration();
+
+                            if(progress >= max)
+                            {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                audioMessagesPlayer.stopAudioPlayer();
+                                seekBar.setProgress(0);
+                                progressTextView.setText(TimeFormatter(max));
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    String TimeFormatter(long millis)
+    {
+        DateFormat formatter = new SimpleDateFormat("HH:mm:ss", Locale.US);
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String text = formatter.format(new Date(millis));
+
+        return text;
+    }
+
 }

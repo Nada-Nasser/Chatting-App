@@ -18,6 +18,22 @@ public class AudioMessagesPlayer
 
     static boolean isPlaying = false;
 
+    public MediaPlayer getPlayer() {
+        return player;
+    }
+
+    public void prePlay(String path)
+    {
+        player = new MediaPlayer();
+
+        try {
+            player.setDataSource(path);
+            player.prepare();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+    }
+
     // start = true -> means that the mediaPlayer will start playing the audio
     // else -> means the mediaPlayer will stop the audio
     public void onPlay(String path)
@@ -37,6 +53,12 @@ public class AudioMessagesPlayer
     private void startPlaying(String path)
     {
         player = new MediaPlayer();
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                isPlaying = false;
+            }
+        });
 
         try {
             player.setDataSource(path);
@@ -55,13 +77,14 @@ public class AudioMessagesPlayer
     public AudioMessagesPlayer(Context context)
     {
         player = new MediaPlayer();
-        onCreateAudioPlayer(context);
-    }
-
-    private void onCreateAudioPlayer(Context context)
-    {
         this.context = context;
-       // fileName = context.getFilesDir().getAbsolutePath();
+
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                isPlaying = false;
+            }
+        });
     }
 
     public String getLastPlayedAudioFilePath()
@@ -74,6 +97,7 @@ public class AudioMessagesPlayer
         if (player != null) {
             player.release();
             player = null;
+            isPlaying = false;
         }
     }
 }

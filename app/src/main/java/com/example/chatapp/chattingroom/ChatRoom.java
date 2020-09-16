@@ -61,7 +61,7 @@ public class ChatRoom extends AppCompatActivity
     private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
     String attachedImagePath = "none";
-    String attachedAudioPath = "none";
+    String attachedAudioPath = "none"; // TODO: attachedpath = none after sending !!!
     String lastRecordedAudioFileName = "none";
     ContactItem chattingContact;
 
@@ -107,6 +107,8 @@ public class ChatRoom extends AppCompatActivity
 
             loadMessages();
             audioMessagesRecorder = new AudioMessagesRecorder(this);
+
+
         }catch (Exception e)
         {
             e.printStackTrace();
@@ -416,10 +418,9 @@ public class ChatRoom extends AppCompatActivity
                 uploadAudioToFirebaseStorage(audioMessagesRecorder.getLastRecordedAudioFilePath());
                 // TODO CREATE FirebaseChattingMessage.
 
-                sendLastRecordedAudioMessage();
-                sendNotification(chattingContact.getName() + " sent you voice note..");
+ //               sendLastRecordedAudioMessage();
+//                sendNotification(chattingContact.getName() + " sent you voice note..");
 
-                //audioMessagesRecorder.onPlay(true , lastRecordedAudioFileName);
                 // TODO lastRecordedAudioFileName = "none";
             }
         }
@@ -656,6 +657,11 @@ public class ChatRoom extends AppCompatActivity
                 try {
                     attachedAudioPath =  riversRef.getPath();
                     Toast.makeText(getApplicationContext(),"Audio Attached" , Toast.LENGTH_SHORT).show();
+
+                    // TODO testing these 2 lines
+                    sendLastRecordedAudioMessage();
+                    sendNotification(chattingContact.getName() + " sent you voice note..");
+
                 }
                 catch (Exception e)
                 {
