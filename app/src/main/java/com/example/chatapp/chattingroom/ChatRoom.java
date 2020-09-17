@@ -10,10 +10,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,11 +76,16 @@ public class ChatRoom extends AppCompatActivity
     TextView contactActiveFlagTextView;
     ListView messagesListView;
     ImageView audioMsgButton;
+    LinearLayout msgTestingLayout;
+    ImageView imageOverview;
+    TextView textOverview;
+
 
     EditText textInputMsgEditText;
 
     DatabaseReference chattingReference;
     AudioMessagesRecorder audioMessagesRecorder;
+    Bitmap selectedImageBitmap = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +99,28 @@ public class ChatRoom extends AppCompatActivity
             messagesListView = findViewById(R.id.chattingList);
             textInputMsgEditText = findViewById(R.id.chattingTextInput);
             audioMsgButton = findViewById(R.id.audioMsgButton);
+
+            msgTestingLayout = findViewById(R.id.msgTesting);
+            imageOverview = findViewById(R.id.imageOverview);
+            textOverview = findViewById(R.id.textOverview);
+
+            textInputMsgEditText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    String str = String.valueOf(charSequence);
+                    textOverview.setText(str);
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+
+                }
+            });
 
             messagesList = new ArrayList<>();
             messagesListAdapter = new MessagesListAdapter(this,messagesList);
@@ -107,7 +137,6 @@ public class ChatRoom extends AppCompatActivity
 
             loadMessages();
             audioMessagesRecorder = new AudioMessagesRecorder(this);
-
 
         }catch (Exception e)
         {
@@ -127,6 +156,7 @@ public class ChatRoom extends AppCompatActivity
                     try
                     {
                         messagesList.clear();
+
 
                         for (DataSnapshot childSnapshot : dataSnapshot.getChildren())
                         {
@@ -229,17 +259,46 @@ public class ChatRoom extends AppCompatActivity
         });
     }
 
+    private void commitTextMessageToFirebase(String msgText)
+    {
+        sendTextMessage(msgText); // TODO sent current date as sentTime
+        sendNotification(msgText);
+
+        msgTestingLayout.setVisibility(View.GONE);
+        imageOverview.setImageResource(R.drawable.loading_icon);
+    }
+
     public void sendMessage(View view)
     {
         String msgText = textInputMsgEditText.getText().toString();
 
         textInputMsgEditText.setText("");
+        msgTestingLayout.setVisibility(View.GONE);
 
-        try {
-            sendTextMessage( msgText); // TODO sent current date as sentTime
-            sendNotification(msgText);
-        }
-        catch (Exception e)
+        // There is a bitmap image?
+
+        // yes: 1- upload the image to get its path. 2- send the message and notification 3- set Bitmap = null again
+
+        // NO: send the message and notification
+
+        try
+        {
+            if (msgText.length()>0 || selectedImageBitmap!=null)
+            {
+                if(selectedImageBitmap == null)
+                {
+                    commitTextMessageToFirebase(msgText);
+                }
+                else
+                {
+                    messagesList.add(new TextMessage("loading" , msgText,"",null,true));
+                    refreshMessagesList();
+
+                    commitTextMessageToFirebaseWithImage(selectedImageBitmap , msgText);
+                }
+            }
+
+        }catch (Exception e)
         {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
@@ -316,6 +375,12 @@ public class ChatRoom extends AppCompatActivity
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
         databaseReference.updateChildren(childUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        attachedImagePath = "none";
+                    }
+                })
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -375,7 +440,6 @@ public class ChatRoom extends AppCompatActivity
     }
 
 
-
     boolean isRecording = false;
     public void onClickSendVoice(View view)
     {
@@ -398,8 +462,6 @@ public class ChatRoom extends AppCompatActivity
 
     private void useAudio()
     {
-        // TODO: push audio msg to firebase and use its path to save the audio msg here.
-
         try {
             if (!isRecording)
             {
@@ -416,10 +478,6 @@ public class ChatRoom extends AppCompatActivity
                 audioMsgButton.setImageResource(R.drawable.mic_icon_blue);
 
                 uploadAudioToFirebaseStorage(audioMessagesRecorder.getLastRecordedAudioFilePath());
-                // TODO CREATE FirebaseChattingMessage.
-
- //               sendLastRecordedAudioMessage();
-//                sendNotification(chattingContact.getName() + " sent you voice note..");
 
                 // TODO lastRecordedAudioFileName = "none";
             }
@@ -446,6 +504,7 @@ public class ChatRoom extends AppCompatActivity
     public void onClickAttachImage(View view)
     {
         CheckReadExternalStoragePermissionAndPickImage(); // save the image path in a string
+
     }
 
     void updateContactImageView()
@@ -533,6 +592,8 @@ public class ChatRoom extends AppCompatActivity
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
         startActivityForResult(i, RESULT_LOAD_IMAGE_CODE);
+
+
     }
 
     @Override
@@ -540,7 +601,7 @@ public class ChatRoom extends AppCompatActivity
     {
         if (requestCode == RESULT_LOAD_IMAGE_CODE && resultCode == RESULT_OK && null != data)
         {
-            MyProgressDialogManager.showProgressDialog(this);
+            msgTestingLayout.setVisibility(View.VISIBLE);
 
             try {
 
@@ -555,8 +616,10 @@ public class ChatRoom extends AppCompatActivity
                 cursor.close();
 
                 //userPicImageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+                selectedImageBitmap = BitmapFactory.decodeFile(picturePath);
+                imageOverview.setImageBitmap(selectedImageBitmap);
 
-                uploadImage(BitmapFactory.decodeFile(picturePath));
+                //uploadImage(BitmapFactory.decodeFile(picturePath));
 
             }catch (Exception Ex)
             {
@@ -569,9 +632,7 @@ public class ChatRoom extends AppCompatActivity
 
     private void uploadImage(Bitmap bitmap)
     {
-        MyProgressDialogManager.showProgressDialog(this);
         try {
-
             final Bitmap imageBitmapCopy = bitmap;
 
             DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
@@ -606,8 +667,67 @@ public class ChatRoom extends AppCompatActivity
                         {
                             try {
                                 attachedImagePath = mountainsRef.getPath();
+                                imageOverview.setImageBitmap(imageBitmapCopy);
 
                                 Toast.makeText(getApplicationContext(),"Image Attached" , Toast.LENGTH_SHORT).show();
+                            }
+                            catch (Exception e) {
+                                MyProgressDialogManager.hideProgressDialog();
+                                e.printStackTrace();
+                            }
+                        }
+
+                    });
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            MyProgressDialogManager.hideProgressDialog();
+            Toast.makeText(getApplicationContext(),"Couldn't upload the image" , Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    private void commitTextMessageToFirebaseWithImage(Bitmap bitmap, final String msgText)
+    {
+        try {
+            final Bitmap imageBitmapCopy = bitmap;
+
+            DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
+            Date dateobj = new Date();
+
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            // Create a storage reference from our app
+            StorageReference storageRef = storage.getReferenceFromUrl("gs://chatapp-dfb4b.appspot.com");
+
+            final String ImagePath = LoggedInUser.getUserID()+ "_" + df.format(dateobj) + ".jpg";
+
+            final StorageReference mountainsRef = storageRef.child("images/" + ImagePath);
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] data = byteArrayOutputStream.toByteArray();
+
+            UploadTask uploadTask = mountainsRef.putBytes(data);
+
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception)
+                {
+                    MyProgressDialogManager.hideProgressDialog();
+                    Toast.makeText(getApplicationContext(),"couldn't Attach the image " + exception.getMessage()  , Toast.LENGTH_SHORT).show();
+                }
+            })
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+                    {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                        {
+                            try {
+                                attachedImagePath = mountainsRef.getPath();
+                                commitTextMessageToFirebase(msgText);
+                                selectedImageBitmap = null;
                             }
                             catch (Exception e) {
                                 MyProgressDialogManager.hideProgressDialog();
@@ -691,5 +811,17 @@ public class ChatRoom extends AppCompatActivity
         String formattedDate = df.format(date);
 
         return  formattedDate;
+    }
+
+    public void onClickCloseOverViewLayout(View view)
+    {
+        closeMessageOverview();
+    }
+
+    void closeMessageOverview()
+    {
+        msgTestingLayout.setVisibility(View.GONE);
+        attachedImagePath = "none";
+        imageOverview.setImageResource(R.drawable.loading_icon);
     }
 }

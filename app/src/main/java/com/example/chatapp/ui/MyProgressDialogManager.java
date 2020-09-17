@@ -9,7 +9,7 @@ public class MyProgressDialogManager
 {
     // loading display
     @VisibleForTesting
-    private static ProgressDialog mProgressDialog;
+    private static ProgressDialog mProgressDialog = null;
 
     public static void showProgressDialog(Context context)
     {

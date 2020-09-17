@@ -70,20 +70,12 @@ public class MessagesListAdapter extends BaseAdapter
             view = inflater.inflate(R.layout.message_list_item, null);
 
             TextMessage msg = ((TextMessage) messages.get(i));
-
-            ImageView msgPhoto = view.findViewById(R.id.msgPhoto);
-            if (msg.getPhotoPath().equals("none"))
-            {
-                msgPhoto.setVisibility(View.GONE);
-            }
-            else {
-                msgPhoto.setVisibility(View.VISIBLE);
-                msgPhoto.setImageResource(R.drawable.loading_icon);
-                updateMessageImageView(msgPhoto, msg.getPhotoPath());
-            }
-
             LinearLayout msgLayout = view.findViewById(R.id.textMsgLayout);
             LinearLayout msgContentLayout = view.findViewById(R.id.msgContentLayout);
+            ImageView msgPhoto = view.findViewById(R.id.msgPhoto);
+            TextView msgText = view.findViewById(R.id.msgText);
+
+            msgText.setText(msg.getText());
 
             if (msg.sentByMe) {
                 msgLayout.setGravity(Gravity.RIGHT);
@@ -93,8 +85,22 @@ public class MessagesListAdapter extends BaseAdapter
                 msgContentLayout.setBackgroundResource(R.drawable.background_lightyellow_chattingmsg);
             }
 
-            TextView msgText = view.findViewById(R.id.msgText);
-            msgText.setText(msg.getText());
+            if (msg.getPhotoPath().equals("none"))
+            {
+                msgPhoto.setVisibility(View.GONE);
+            }
+            else if (msg.getPhotoPath().equals("loading"))
+            {
+                msgPhoto.setVisibility(View.VISIBLE);
+                msgPhoto.setImageResource(R.drawable.loading_icon);
+                return view;
+            }
+            else {
+                msgPhoto.setVisibility(View.VISIBLE);
+                msgPhoto.setImageResource(R.drawable.loading_icon);
+                updateMessageImageView(msgPhoto, msg.getPhotoPath());
+            }
+
 
             return view;
         }
