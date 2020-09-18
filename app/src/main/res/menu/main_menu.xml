@@ -16,4 +16,10 @@
         app:actionViewClass="android.widget.SearchView"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/app_bar_setting"
+        android:title="account setting"
+        android:icon="@drawable/black_setting_icon"
+        app:showAsAction="always"/>
+
 </menu>

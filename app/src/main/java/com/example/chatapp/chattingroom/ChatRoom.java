@@ -64,7 +64,7 @@ public class ChatRoom extends AppCompatActivity
     private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
     String attachedImagePath = "none";
-    String attachedAudioPath = "none"; // TODO: attachedpath = none after sending !!!
+    String attachedAudioPath = "none";
     String lastRecordedAudioFileName = "none";
     ContactItem chattingContact;
 
@@ -103,6 +103,8 @@ public class ChatRoom extends AppCompatActivity
             msgTestingLayout = findViewById(R.id.msgTesting);
             imageOverview = findViewById(R.id.imageOverview);
             textOverview = findViewById(R.id.textOverview);
+
+            LoggedInUser.beOnlineOnFirebase();
 
             textInputMsgEditText.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -144,6 +146,7 @@ public class ChatRoom extends AppCompatActivity
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
     }
+
 
     private void loadMessages()
     {
@@ -479,7 +482,7 @@ public class ChatRoom extends AppCompatActivity
 
                 uploadAudioToFirebaseStorage(audioMessagesRecorder.getLastRecordedAudioFilePath());
 
-                // TODO lastRecordedAudioFileName = "none";
+                // lastRecordedAudioFileName = "none";
             }
         }
         catch (Exception e)
@@ -778,10 +781,8 @@ public class ChatRoom extends AppCompatActivity
                     attachedAudioPath =  riversRef.getPath();
                     Toast.makeText(getApplicationContext(),"Audio Attached" , Toast.LENGTH_SHORT).show();
 
-                    // TODO testing these 2 lines
                     sendLastRecordedAudioMessage();
                     sendNotification(chattingContact.getName() + " sent you voice note..");
-
                 }
                 catch (Exception e)
                 {

@@ -25,9 +25,9 @@
             android:shape="rectangle">
 
             <!-- Specify a semi-transparent solid green background color -->
-            <solid android:color="@color/colorPrimaryDark" />
+            <solid android:color="@color/lightBlue" />
 
-            <corners android:radius="5dp"></corners>
+            <corners android:radius="20dp"></corners>
 
             <!-- Specify the margins that all content inside the drawable must adhere to -->
             <!--

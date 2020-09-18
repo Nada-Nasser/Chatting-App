@@ -16,6 +16,7 @@
         android:roundIcon="@drawable/chat_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".PersonalSetting"></activity>
 
         <service
             android:name=".MessagesListenerService"

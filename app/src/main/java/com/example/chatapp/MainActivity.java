@@ -25,18 +25,13 @@ import androidx.core.app.ActivityCompat;
 import com.example.chatapp.chattingroom.ChatRoom;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -76,7 +71,6 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
-        //addTestUsers();
     }
 
 
@@ -106,6 +100,12 @@ public class MainActivity extends AppCompatActivity
         startActivity(chattingRoomIntent);
     }
 
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        LoggedInUser.beOfflineOnFirebase();
+    }
 
     //access to Permissions
     private void CheckContactsPermissions()
@@ -324,23 +324,26 @@ public class MainActivity extends AppCompatActivity
             startActivity(loginIntent);
             finish();
         }
-        else
+        else // There is a logged in user
         {
             MyProgressDialogManager.showProgressDialog(this);
             LoggedInUser.loadData(this);
-            loadMyFirebaseInfo();
+         //   updateMyFirebaseInfo();
             MyProgressDialogManager.hideProgressDialog();
         }
     }
 
-    private void loadMyFirebaseInfo()
+
+    /*
+    private void updateMyFirebaseInfo()
     {
         int gender = LoggedInUser.getGender();
         String imgPath = LoggedInUser.getPhotoPath();
 
         String name = LoggedInUser.getPhoneNumber();
         String phoneNumber = LoggedInUser.getPhoneNumber();
-        String status = "Iam fine";
+        String status = LoggedInUser.getStatus();
+
         // TODO set a real status value (do this after adding setting menu item)
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -369,8 +372,8 @@ public class MainActivity extends AppCompatActivity
                         Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
                     }
                 });
-
     }
+*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -390,13 +393,33 @@ public class MainActivity extends AppCompatActivity
             case R.id.add_contact:
                 PickContact();
                 return true;
+            case R.id.app_bar_setting:
+                openSettingActivity();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    // pick phone number
+    private void openSettingActivity()
+    {
+        //myInfo  = new ContactItem(userId,name,phoneNumber,status,true,gender,imgPath);
+        Intent settingIntent = new Intent(this , PersonalSetting.class);
 
+        /*
+        settingIntent.putExtra("userId",myInfo.getUserID()); // fixed
+        settingIntent.putExtra("name", myInfo.getName()); // fixed
+        settingIntent.putExtra("phoneNumber", myInfo.getPhoneNumber()); // fixed
+        settingIntent.putExtra("status", myInfo.getStatus()); // not fixed
+        settingIntent.putExtra("isActive", myInfo.getIsActive()); // fixed
+        settingIntent.putExtra("gender", myInfo.getGender()); // fixed
+        settingIntent.putExtra("imgPath", myInfo.getImagePath()); // not fixed
+        */
+
+        startActivity(settingIntent);
+    }
+
+    // pick phone number
     void PickContact()
     {
         if (Build.VERSION.SDK_INT >= 23){

@@ -2,6 +2,7 @@ package com.example.chatapp.chattingroom;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -137,7 +138,14 @@ public class MessagesListAdapter extends BaseAdapter
                     try {
                         audioMessagesPlayer.onPlay(file.getAbsolutePath());
                         thread.start();
-                     //TODO   audioIcon.setImageResource(R.drawable.active_voice_recorder_icon);
+                        audioIcon.setImageResource(R.drawable.active_voice_recorder_icon);
+
+                        audioMessagesPlayer.getPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mediaPlayer) {
+                                audioIcon.setImageResource(R.drawable.audio_msg_icon);
+                            }
+                        });
 
                     }catch (Exception e)
                     {

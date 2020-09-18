@@ -33,7 +33,8 @@
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_marginRight="5dp"
-            android:src="@drawable/male_user"/>
+            android:layout_marginLeft="5dp"
+            android:src="@drawable/image_testing"/>
 
         <LinearLayout
             android:layout_weight="4"
