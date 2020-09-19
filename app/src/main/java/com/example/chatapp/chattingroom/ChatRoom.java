@@ -26,9 +26,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.example.chatapp.ContactItem;
 import com.example.chatapp.R;
+import com.example.chatapp.contactsmanager.ContactItem;
 import com.example.chatapp.globalinfo.Gender;
+import com.example.chatapp.globalinfo.GlobalOperations;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -54,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class ChatRoom extends AppCompatActivity
@@ -215,7 +215,7 @@ public class ChatRoom extends AppCompatActivity
         scrollMyListViewToBottom();
     }
 
-    private void getChattingContact(Bundle bundle)
+    private void getChattingContact(@NonNull Bundle bundle)
     {
         String userID  = bundle.getString("userID","0");
 
@@ -402,7 +402,7 @@ public class ChatRoom extends AppCompatActivity
     private void sendLastRecordedAudioMessage()
     {
         String msgId = chattingReference.push().getKey();
-        Date sentTime = getCurrentDate();
+        Date sentTime = GlobalOperations.getCurrentDate();
         String audioPath = attachedAudioPath;
 
         FirebaseChattingMessage myFirebaseChattingMessage = new FirebaseChattingMessage(msgId,
@@ -468,8 +468,8 @@ public class ChatRoom extends AppCompatActivity
         try {
             if (!isRecording)
             {
-                Date cDate = getCurrentDate();
-                lastRecordedAudioFileName = LoggedInUser.getPhoneNumber()+"_"+dateToStringFormatter(cDate);
+                Date cDate = GlobalOperations.getCurrentDate();
+                lastRecordedAudioFileName = LoggedInUser.getPhoneNumber()+"_"+GlobalOperations.dateToStringFormatter(cDate);
 
                 audioMessagesRecorder.onRecord(true , lastRecordedAudioFileName);
                 audioMsgButton.setImageResource(R.drawable.active_voice_recorder_icon);
@@ -501,7 +501,7 @@ public class ChatRoom extends AppCompatActivity
 
     public void onClickContactInfo(View view)
     {
-
+        // TODO
     }
 
     public void onClickAttachImage(View view)
@@ -595,8 +595,6 @@ public class ChatRoom extends AppCompatActivity
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
         startActivityForResult(i, RESULT_LOAD_IMAGE_CODE);
-
-
     }
 
     @Override
@@ -618,11 +616,8 @@ public class ChatRoom extends AppCompatActivity
                 String picturePath = cursor.getString(columnIndex);
                 cursor.close();
 
-                //userPicImageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
                 selectedImageBitmap = BitmapFactory.decodeFile(picturePath);
                 imageOverview.setImageBitmap(selectedImageBitmap);
-
-                //uploadImage(BitmapFactory.decodeFile(picturePath));
 
             }catch (Exception Ex)
             {
@@ -633,6 +628,8 @@ public class ChatRoom extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+/*
     private void uploadImage(Bitmap bitmap)
     {
         try {
@@ -690,13 +687,11 @@ public class ChatRoom extends AppCompatActivity
             Toast.makeText(getApplicationContext(),"Couldn't upload the image" , Toast.LENGTH_LONG).show();
         }
     }
-
+    */
 
     private void commitTextMessageToFirebaseWithImage(Bitmap bitmap, final String msgText)
     {
         try {
-            final Bitmap imageBitmapCopy = bitmap;
-
             DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
             Date dateobj = new Date();
 
@@ -749,7 +744,6 @@ public class ChatRoom extends AppCompatActivity
         }
     }
 
-
     private void uploadAudioToFirebaseStorage(String audioPath)
     {
         MyProgressDialogManager.showProgressDialog(this);
@@ -798,6 +792,7 @@ public class ChatRoom extends AppCompatActivity
         });
     }
 
+    /*
     Date getCurrentDate()
     {
         Date c = Calendar.getInstance().getTime();
@@ -812,7 +807,7 @@ public class ChatRoom extends AppCompatActivity
         String formattedDate = df.format(date);
 
         return  formattedDate;
-    }
+    }*/
 
     public void onClickCloseOverViewLayout(View view)
     {

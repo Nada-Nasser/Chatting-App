@@ -1,4 +1,4 @@
-package com.example.chatapp;
+package com.example.chatapp.contactsmanager;
 
 import android.content.Context;
 import android.net.Uri;
@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.example.chatapp.R;
 import com.example.chatapp.globalinfo.Gender;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;

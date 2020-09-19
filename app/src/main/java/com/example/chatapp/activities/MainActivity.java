@@ -1,4 +1,4 @@
-package com.example.chatapp;
+package com.example.chatapp.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -22,8 +22,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.example.chatapp.R;
 import com.example.chatapp.chattingroom.ChatRoom;
+import com.example.chatapp.contactsmanager.ContactItem;
+import com.example.chatapp.contactsmanager.ContactsListAdapter;
 import com.example.chatapp.globalinfo.LoggedInUser;
+import com.example.chatapp.messagesservices.MessagesListenerService;
 import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -36,11 +40,11 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
 {
     private static final int REQUEST_CODE_ASK_CONTACTS_PERMISSIONS = 111;
+    static final int PICK_CONTACT_REQUEST_CODE = 1;
+
     ArrayList<ContactItem> myContactsList;
     ContactsListAdapter contactsListAdapter;
     ListView myContactsListView;
-
-    ContactItem myInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -82,8 +86,6 @@ public class MainActivity extends AppCompatActivity
 
     private void OpenChatRoom(ContactItem contactItem)
     {
-        // Toast.makeText(getApplicationContext(),contactItem.toString(),Toast.LENGTH_LONG).show();
-
         Intent chattingRoomIntent = new Intent(getApplicationContext() , ChatRoom.class);
 
         chattingRoomIntent.putExtra("userID",contactItem.getUserID());
@@ -91,8 +93,6 @@ public class MainActivity extends AppCompatActivity
         chattingRoomIntent.putExtra("phoneNumber",contactItem.getPhoneNumber());
         chattingRoomIntent.putExtra("status",contactItem.getStatus());
         chattingRoomIntent.putExtra("isActive",contactItem.getIsActive());
-
-        //chattingRoomIntent.putExtra("lastOnlineDate",contactItem.getLastOnlineDate().getTime());
 
         chattingRoomIntent.putExtra("gender",contactItem.getGender());
         chattingRoomIntent.putExtra("imagePath",contactItem.getImagePath());
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity
 
         LoadUserContacts();// init the contact list
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -189,8 +188,8 @@ public class MainActivity extends AppCompatActivity
                                     flag = true;
                                     c.setName(cs.name);
                                     myContactsList.add(c);
-                                    startContactInfoListener(c , myContactsList.size()-1); // to get the contacts info
-                                    Toast.makeText(getApplicationContext(), "SHOW : " + cs.getPhoneNumber() + ":" + cs.getName(), Toast.LENGTH_SHORT).show();
+                                    startContactInfoListener(c); // to get the contacts info
+                           //         Toast.makeText(getApplicationContext(), "SHOW : " + cs.getPhoneNumber() + ":" + cs.getName(), Toast.LENGTH_SHORT).show();
                                     break;
                                 }
                             }
@@ -200,7 +199,7 @@ public class MainActivity extends AppCompatActivity
                         ContactItem c =  new ContactItem("unKnown",keyNumber,keyNumber,"unKnown",false,1,"-1");
                         if( c != null) {
                             c.setName(c.getPhoneNumber());
-                            startContactInfoListener(c , myContactsList.size()-1);
+                            startContactInfoListener(c);
                             myContactsList.add(c);
                         }
                     }
@@ -216,7 +215,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void startContactInfoListener(ContactItem c, int i)
+    private void startContactInfoListener(@NonNull ContactItem c)
     {
         final String name = c.getName();
         FirebaseDatabase.getInstance().getReference().child("users").child(c.getPhoneNumber()).child("userInfo")
@@ -261,13 +260,7 @@ public class MainActivity extends AppCompatActivity
 
             String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-            listAllPhoneContacts.add(new PairNumberName(name,FormatPhoneNumber(phoneNumber)));
-
-            /*
-            if(!phoneNumber.equalsIgnoreCase("0"))
-                Log.i("Numbers", "onDataChange: " + phoneNumber + " Formated : " + FormatPhoneNumber(phoneNumber));
-        */
-
+            listAllPhoneContacts.add(new PairNumberName(name, FormatPhoneNumber(phoneNumber)));
         }
         cursor.close();
         return listAllPhoneContacts;
@@ -300,20 +293,9 @@ public class MainActivity extends AppCompatActivity
         return tempContact;
     }
 
-    private void copyContactItemToTemp(ContactItem contactItem) {
+    private void copyContactItemToTemp(@NonNull ContactItem contactItem) {
         tempContact = new ContactItem(contactItem.getUserID(),contactItem.getName(),
                 contactItem.getPhoneNumber(),contactItem.getStatus(),contactItem.getIsActive(),contactItem.getGender(),contactItem.getImagePath());
-    }
-
-    private void addTestUsers()
-    {
-
-        myContactsList.add(new ContactItem("0","test","0147258369","test",true,1));
-        myContactsList.add(new ContactItem("0","test2","test","test",true,2));
-        myContactsList.add(new ContactItem("0","test3","test","test",false,1));
-        myContactsList.add(new ContactItem("0","test4","test","test",true,2));
-
-        contactsListAdapter.notifyDataSetChanged();
     }
 
     private void checkUserDate()
@@ -328,52 +310,9 @@ public class MainActivity extends AppCompatActivity
         {
             MyProgressDialogManager.showProgressDialog(this);
             LoggedInUser.loadData(this);
-         //   updateMyFirebaseInfo();
             MyProgressDialogManager.hideProgressDialog();
         }
     }
-
-
-    /*
-    private void updateMyFirebaseInfo()
-    {
-        int gender = LoggedInUser.getGender();
-        String imgPath = LoggedInUser.getPhotoPath();
-
-        String name = LoggedInUser.getPhoneNumber();
-        String phoneNumber = LoggedInUser.getPhoneNumber();
-        String status = LoggedInUser.getStatus();
-
-        // TODO set a real status value (do this after adding setting menu item)
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        myInfo  = new ContactItem(userId,name,phoneNumber,status,true,gender,imgPath);
-
-        Map<String, Object> myRecord = myInfo.toMap();
-        String path = "/users/"+LoggedInUser.getPhoneNumber() + "/userInfo/";
-
-        Map<String, Object> childUpdates = new HashMap<>();
-
-        childUpdates.put(path , myRecord);
-
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-
-        databaseReference.updateChildren(childUpdates)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(getApplicationContext(),"Done", Toast.LENGTH_LONG).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
-*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -403,19 +342,7 @@ public class MainActivity extends AppCompatActivity
 
     private void openSettingActivity()
     {
-        //myInfo  = new ContactItem(userId,name,phoneNumber,status,true,gender,imgPath);
         Intent settingIntent = new Intent(this , PersonalSetting.class);
-
-        /*
-        settingIntent.putExtra("userId",myInfo.getUserID()); // fixed
-        settingIntent.putExtra("name", myInfo.getName()); // fixed
-        settingIntent.putExtra("phoneNumber", myInfo.getPhoneNumber()); // fixed
-        settingIntent.putExtra("status", myInfo.getStatus()); // not fixed
-        settingIntent.putExtra("isActive", myInfo.getIsActive()); // fixed
-        settingIntent.putExtra("gender", myInfo.getGender()); // fixed
-        settingIntent.putExtra("imgPath", myInfo.getImagePath()); // not fixed
-        */
-
         startActivity(settingIntent);
     }
 
@@ -436,7 +363,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Declare
-    static final int PICK_CONTACT_REQUEST_CODE = 1;
     @Override
     public void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
@@ -516,11 +442,9 @@ public class MainActivity extends AppCompatActivity
                     }
 
                 });
-
     }
 
-
-    class PairNumberName{
+    static class PairNumberName{
         String name;
         String phoneNumber;
 
@@ -547,6 +471,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //format phone number
+    @NonNull
     public static String FormatPhoneNumber(String Oldnmber)
     {
         try{

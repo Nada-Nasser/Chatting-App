@@ -1,20 +1,18 @@
-package com.example.chatapp;
+package com.example.chatapp.messagesservices;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.JobIntentService;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.chatapp.R;
+import com.example.chatapp.activities.MainActivity;
 import com.example.chatapp.chattingroom.ChattingNotification;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.google.firebase.database.DataSnapshot;
@@ -23,41 +21,32 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class MessagesListenerJobIntentService extends JobIntentService
-{
-    final Handler mHandler = new Handler();
-
-    private static final String TAG = "UpdateLocationService";
-
-    /**
-     * Unique job ID for this service.
-     */
-
-    private static final int JOB_ID = 2;
-
-    static boolean isRunning = false;
-    DatabaseReference databaseReference;
-
-    public static void enqueueWork (Context context, Intent intent) {
-        enqueueWork (context, MessagesListenerJobIntentService.class, JOB_ID, intent);
+public class MessagesListenerService extends Service {
+    public MessagesListenerService() {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        isRunning = true;
-     //   databaseReference = FirebaseDatabase.getInstance().getReference();
-        showToast("Job Execution Started");
+    public IBinder onBind(Intent intent) {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
+
     @Override
-    protected void onHandleWork(@NonNull Intent intent)
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.e("TAG", "onStartCommand");
+        super.onStartCommand(intent, flags, startId);
+
+        startListening();
+
+        return START_STICKY;
+    }
+
+    private void startListening()
     {
-
         final Context context = getApplicationContext();
         LoggedInUser.loadData(this);
 
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
         databaseReference.child("users").child(LoggedInUser.getPhoneNumber()).child("notifications")
                 .addValueEventListener(new ValueEventListener() {
@@ -71,17 +60,11 @@ public class MessagesListenerJobIntentService extends JobIntentService
                             {
                                 ChattingNotification chattingNotification =
                                         childSnapshot.getValue(ChattingNotification.class);
-                                 String CHANNEL_ID = childSnapshot.getKey();
+                                String CHANNEL_ID = childSnapshot.getKey();
 
                                 if(chattingNotification != null)
                                 {
                                     // send notification
-/*                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                                            .setSmallIcon(R.drawable.chat_icon)
-                                            .setContentTitle(chattingNotification.senderPhoneNumber)
-                                            .setContentText(chattingNotification.msgContent)
-                                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-*/
                                     Intent intent = new Intent(context, MainActivity.class);
                                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
@@ -99,10 +82,15 @@ public class MessagesListenerJobIntentService extends JobIntentService
                                     // notificationId is a unique int for each notification that you must define
                                     notificationManager.notify(NotificationID++, builder.build());
 
+                                    FirebaseDatabase.getInstance().getReference().child("users")
+                                            .child(LoggedInUser.getPhoneNumber()).child("notifications")
+                                            .setValue(null);
+
                                 }
                                 else
                                     Log.i("NULL","NO USER FOUNDED");
                             }
+
 
                             FirebaseDatabase.getInstance().getReference().child("users")
                                     .child(LoggedInUser.getPhoneNumber()).child("notifications")
@@ -118,45 +106,24 @@ public class MessagesListenerJobIntentService extends JobIntentService
                     }
                 });
 
+
     }
 
-    private void createNotificationChannel(String channel_name) {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "";
-            String description = "getString(R.string.channel_description)";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(channel_name, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
+
+    @Override
+    public void onCreate() {
+        Log.e("TAG", "onCreate");
+
+
     }
 
     @Override
     public void onDestroy() {
+        Log.e("TAG", "onDestroy");
+        //stoptimertask();
+         //startService(new Intent(this, MessagesListenerService.class));
         super.onDestroy();
-        showToast("Job Execution Finished");
     }
 
 
-    // Helper for showing tests
-    void showToast(final CharSequence text) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MessagesListenerJobIntentService.this, text, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 }
-
-// to run the service
-/*
-Intent mIntent = new Intent(this, MyJobIntentService.class);
-mIntent.putExtra("maxCountValue", 1000);
-MyJobIntentService.enqueueWork(this, mIntent);
-        */

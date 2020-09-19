@@ -62,7 +62,7 @@
         </LinearLayout>
 
         <Button
-            android:layout_marginRight="10sp"
+            android:layout_marginEnd="10sp"
             android:id="@+id/new_msg"
             android:gravity="center"
             android:layout_gravity="center_vertical"

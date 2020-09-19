@@ -16,10 +16,10 @@
         android:roundIcon="@drawable/chat_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PersonalSetting"></activity>
+        <activity android:name=".activities.PersonalSetting"></activity>
 
         <service
-            android:name=".MessagesListenerService"
+            android:name=".messagesservices.MessagesListenerService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -29,21 +29,21 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".BootCompleteReceiver">
+        <receiver android:name=".messagesservices.BootCompleteReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
         <service
-            android:name=".MessagesListenerJobIntentService"
+            android:name=".messagesservices.MessagesListenerJobIntentService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <activity
             android:name=".chattingroom.ChatRoom"
             android:theme="@style/chatTheme" />
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.LoginActivity" />
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

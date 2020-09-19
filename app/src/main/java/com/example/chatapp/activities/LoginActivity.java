@@ -1,4 +1,4 @@
-package com.example.chatapp;
+package com.example.chatapp.activities;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.example.chatapp.R;
 import com.example.chatapp.globalinfo.Gender;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
@@ -27,89 +29,111 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class PersonalSetting extends AppCompatActivity
+public class LoginActivity extends AppCompatActivity
 {
     private static final int REQUEST_READ_STORAGE_CODE_PERMISSIONS = 111;
     private static final int RESULT_LOAD_IMAGE_CODE = 112;
-    private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
-//    ContactItem myInfo;
-    ImageView userImageView;
-    EditText statusEditText;
+    ImageView userPicImageView;
+    EditText userPhoneNumberEditText;
+    int userGender;
+    private String attachedImageURL = "none";
 
-    String attachedImagePath = "none";
-    Bitmap selectedImageBitmap = null;
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_personal_setting);
+        setContentView(R.layout.activity_login);
 
-        userImageView = findViewById(R.id.userImage);
-        statusEditText = findViewById(R.id.userStatus);
+        userPicImageView = findViewById(R.id.user_pic);
+        userPhoneNumberEditText = findViewById(R.id.user_phone_number);
 
-        MyProgressDialogManager.showProgressDialog(this);
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        LoggedInUser.beOnlineOnFirebase();
-
-        statusEditText.setText(LoggedInUser.getStatus());
-        updateContactImageView();
     }
 
+    // [START on_start_add_listener]
+    @Override
+    public void onStart() {
+        super.onStart();
+        signInAnonymously();
+    }
 
-    void updateContactImageView()
+    private void signInAnonymously()
     {
-        if(LoggedInUser.getPhotoPath().equalsIgnoreCase("none")) //when user has no image
-        {
-            int imageResource = LoggedInUser.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
-            userImageView.setImageResource(imageResource);
-        }
-        else // download the image from firebase storage and load it in the image view using picasso lib.
-        {
-            try
-            {
-                Picasso.get().setLoggingEnabled(true);
+        firebaseAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful())
+                        {
+                            Log.d("firebaseAuth", "signInAnonymously:success");
+                           // Toast.makeText(getApplicationContext(), "Authentication Succeed.", Toast.LENGTH_SHORT).show();
 
-                FirebaseStorage.getInstance().getReference(LoggedInUser.getPhotoPath()).getDownloadUrl()
-                        .addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                MyProgressDialogManager.hideProgressDialog();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception exception)
-                            {
-                                int imageResource = LoggedInUser.getGender() == Gender.MALE? R.drawable.male_user : R.drawable.female_user;
-                                userImageView.setImageResource(imageResource);
-                            }
-                        })
-                        .addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri downloadUrl)
-                            {
-                                Picasso.get().load(downloadUrl).into(userImageView);
-                                Log.i("TAG", "onSuccess: " + downloadUrl + " ----> " + downloadUrl.toString());
-                            }
-                        });
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+                            LoggedInUser.setUserID(firebaseAuth.getCurrentUser().getUid());
+                        }
+                        else {
+                            Log.w("firebaseAuth", "signInAnonymously:failure", task.getException());
+                            Toast.makeText(getApplicationContext(), "Authentication failed. check your internet connection", Toast.LENGTH_SHORT).show();
+                          // TODO  finish();
+                        }
+                    }
+                });
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        MyProgressDialogManager.hideProgressDialog();
+    }
+
+    public void onRadioButtonClicked(View view)
+    {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.radio_male:
+                if (checked)
+                    userGender = Gender.MALE;
+                    break;
+            case R.id.radio_female:
+                if (checked)
+                    userGender = Gender.FEMALE;
+                    break;
         }
+    }
+
+    public void onClickAddPhoto(View view)
+    {
+        CheckReadExternalStoragePermissionAndPickImage();
+    }
+
+    public void onClickLoginBu(View view)
+    {
+        LoggedInUser.saveUserDate(this,userPhoneNumberEditText.getText().toString()
+        ,"you",attachedImageURL,firebaseAuth.getCurrentUser().getUid(),userGender , "Iam Fine");
+
+        // TODO: step1: logged in using Firebase Auth (with phone number). and delete the Anonymous user
+
+        Intent mainActivityIntent = new Intent(this,MainActivity.class);
+        startActivity(mainActivityIntent);
+        finish();
     }
 
     void CheckReadExternalStoragePermissionAndPickImage(){
@@ -130,7 +154,7 @@ public class PersonalSetting extends AppCompatActivity
         switch (requestCode) {
             case REQUEST_READ_STORAGE_CODE_PERMISSIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    pickImage();
+                    pickImage();// init the contact list
                 } else {
                     // Permission Denied
                     Toast.makeText( this,"You can not put image without this permissions" , Toast.LENGTH_SHORT)
@@ -156,6 +180,7 @@ public class PersonalSetting extends AppCompatActivity
         if (requestCode == RESULT_LOAD_IMAGE_CODE && resultCode == RESULT_OK && null != data)
         {
             try {
+                MyProgressDialogManager.showProgressDialog(this);
 
                 Uri selectedImageUri = data.getData();
                 String[] dataPath = {MediaStore.Images.Media.DATA};
@@ -167,8 +192,9 @@ public class PersonalSetting extends AppCompatActivity
                 String picturePath = cursor.getString(columnIndex);
                 cursor.close();
 
-                selectedImageBitmap = BitmapFactory.decodeFile(picturePath);
-                userImageView.setImageBitmap(selectedImageBitmap);
+                userPicImageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+
+                uploadImage(BitmapFactory.decodeFile(picturePath));
 
             }catch (Exception Ex)
             {
@@ -179,37 +205,16 @@ public class PersonalSetting extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void onClickEditImage(View view)
-    {
-        CheckReadExternalStoragePermissionAndPickImage();
-    }
-
-    public void onClickApplyChanges(View view)
-    {
-        MyProgressDialogManager.showProgressDialog(this);
-        if (selectedImageBitmap == null)
-        {
-            if(statusEditText.getText().toString().length() >0 ) {
-                UpdateMyInfoOnFirebase(statusEditText.getText().toString());
-            }
-            else
-            {
-                UpdateMyInfoOnFirebase("none");
-            }
-        }
-        else {
-            uploadImage(selectedImageBitmap);
-        }
-
-    }
 
     private void uploadImage(Bitmap bitmap)
     {
         try {
+
             final Bitmap imageBitmapCopy = bitmap;
+            MyProgressDialogManager.showProgressDialog(this);
 
             DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
-            Date dateobj = new Date(); // TODO get current Date
+            Date dateobj = new Date();
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             // Create a storage reference from our app
@@ -229,35 +234,35 @@ public class PersonalSetting extends AppCompatActivity
                 @Override
                 public void onFailure(@NonNull Exception exception)
                 {
-                    MyProgressDialogManager.hideProgressDialog();
                     Toast.makeText(getApplicationContext(),"couldn't Attach the image " + exception.getMessage()  , Toast.LENGTH_SHORT).show();
+                    userPicImageView.setImageResource(R.drawable.add_user_pic);
                 }
             })
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+            .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>()
                     {
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task)
                         {
-                            try {
-                                attachedImagePath = mountainsRef.getPath();
-
-                                Toast.makeText(getApplicationContext(),"Image Attached" , Toast.LENGTH_SHORT).show();
-
-                                if(statusEditText.getText().toString().length() >0 ) {
-                                    UpdateMyInfoOnFirebase(statusEditText.getText().toString());
-                                }
-                                else
-                                {
-                                    UpdateMyInfoOnFirebase("none");
-                                }
-                            }
-                            catch (Exception e) {
-                                MyProgressDialogManager.hideProgressDialog();
-                                e.printStackTrace();
-                            }
+                            MyProgressDialogManager.hideProgressDialog();
                         }
+                    })
+            .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+            {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                {
+                    try {
+                        attachedImageURL = mountainsRef.getPath();
 
-                    });
+                        Toast.makeText(getApplicationContext(),"Image Attached" , Toast.LENGTH_SHORT).show();
+                    }
+                    catch (Exception e) {
+                        MyProgressDialogManager.hideProgressDialog();
+                        e.printStackTrace();
+                    }
+                }
+
+            });
 
         }
         catch (Exception e)
@@ -267,22 +272,4 @@ public class PersonalSetting extends AppCompatActivity
             Toast.makeText(getApplicationContext(),"Couldn't upload the image" , Toast.LENGTH_LONG).show();
         }
     }
-
-
-    private void UpdateMyInfoOnFirebase(String status)
-    {
-        if (!attachedImagePath.equals("none"))
-        {
-            LoggedInUser.setPhotoPath(attachedImagePath);
-        }
-
-        LoggedInUser.setStatus(status);
-
-        LoggedInUser.saveChanges(this);
-
-        MyProgressDialogManager.hideProgressDialog();
-
-    }
-
-
 }

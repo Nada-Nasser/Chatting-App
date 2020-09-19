@@ -6,7 +6,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.example.chatapp.ContactItem;
+import com.example.chatapp.contactsmanager.ContactItem;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
@@ -20,30 +20,10 @@ public class LoggedInUser
 
     private static ContactItem myContactInfo;
 
-    /*
-    private static String phoneNumber;
-    private static String name;
-    private static String photoPath;
-    private static String userID;
-    private static int gender;
-    private static String status;*/
-
     public static void saveUserDate(Context context, String phoneNumber, String name, String photoPath, String userID , int gender
                 , String status)
     {
-        //(String userId, String name, String phoneNumber, String status,
-        //                       boolean isActive,int gender, String imgPath)
-
         myContactInfo = new ContactItem(userID , name , phoneNumber , status,true,gender,photoPath);
-
-        /*
-        LoggedInUser.phoneNumber = FormatPhoneNumber(phoneNumber);
-        LoggedInUser.name = name;
-        LoggedInUser.photoPath = photoPath;
-        LoggedInUser.userID = userID;
-        LoggedInUser.gender = gender;
-        LoggedInUser.status = status;*/
-
         commitDate(context);
     }
 
@@ -52,7 +32,7 @@ public class LoggedInUser
         commitDate(context);
     }
 
-    private static void commitDate(Context context)
+    private static void commitDate(@NonNull Context context)
     {
         SharedPreferences sharedPreferences = context.getSharedPreferences("chattingAppLoggedInUser" , Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -86,13 +66,6 @@ public class LoggedInUser
         myContactInfo.setIsActive(true);
 
         beOnlineOnFirebase();
-
-        /*
-        LoggedInUser.photoPath = sharedPreferences.getString("photoPath" , "none");
-        LoggedInUser.userID = sharedPreferences.getString("userID" , "none");
-        LoggedInUser.gender = sharedPreferences.getInt("gender" , 1);
-
-        LoggedInUser.status = sharedPreferences.getString("status" , "none");*/
     }
 
     public static void beOfflineOnFirebase() {
