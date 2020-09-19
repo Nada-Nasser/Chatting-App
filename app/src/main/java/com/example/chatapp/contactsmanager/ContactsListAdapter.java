@@ -20,16 +20,19 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ContactsListAdapter extends BaseAdapter
 {
     Context context;
     ArrayList<ContactItem> contactItems;
+    HashMap<String , Integer> notifyCount;
 
     public ContactsListAdapter(Context context, ArrayList<ContactItem> contactItems)
     {
         this.context = context;
         this.contactItems = contactItems;
+        this.notifyCount = new HashMap<>();
     }
 
     @Override
@@ -40,6 +43,12 @@ public class ContactsListAdapter extends BaseAdapter
     @Override
     public Object getItem(int i) {
         return contactItems.get(i);
+    }
+
+    public void receiveMessage(String phoneNumber , int count)
+    {
+        notifyCount.put(phoneNumber , count);
+        notifyDataSetChanged();
     }
 
     @Override
@@ -98,6 +107,23 @@ public class ContactsListAdapter extends BaseAdapter
             {
                 e.printStackTrace();
             }
+        }
+
+
+        TextView new_msgBu = view.findViewById(R.id.new_msg);
+
+        try {
+            if (notifyCount.containsKey(contactItem.getPhoneNumber())) {
+                int count = notifyCount.get(contactItem.getPhoneNumber());
+                if (count > 0) {
+                    new_msgBu.setText(String.valueOf(count));
+                    new_msgBu.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
 
         return view;

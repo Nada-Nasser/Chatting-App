@@ -12,7 +12,6 @@ public class ContactItem
     private String phoneNumber;
     private String status;
     private Boolean isActive;
-    //private Date lastOnlineDate;
     private int gender;
     private String imagePath;
 
@@ -26,7 +25,6 @@ public class ContactItem
         this.phoneNumber = FormatPhoneNumber(phoneNumber);
         this.status = status;
         this.isActive = isActive;
-      //  this.lastOnlineDate = date;
         this.gender = gender;
         this.imagePath = imgPath;
     }

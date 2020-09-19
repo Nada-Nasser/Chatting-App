@@ -32,10 +32,12 @@ import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -46,6 +48,8 @@ public class MainActivity extends AppCompatActivity
     ContactsListAdapter contactsListAdapter;
     ListView myContactsListView;
 
+    HashMap<String , Integer> notifyCount;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -53,6 +57,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         checkUserDate();
+        notifyCount = new HashMap<>();
 
         myContactsListView = findViewById(R.id.contacts_list);
 
@@ -69,14 +74,15 @@ public class MainActivity extends AppCompatActivity
         });
 
         try {
-           CheckContactsPermissions(); // add contacts to chatting list
+            CheckContactsPermissions(); // add contacts to chatting list
+            ListenNotifyCount();
         }catch (Exception e)
         {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
-    }
 
+    }
 
     @Override
     protected void onStart() {
@@ -84,7 +90,7 @@ public class MainActivity extends AppCompatActivity
         startService(new Intent(this, MessagesListenerService.class));
     }
 
-    private void OpenChatRoom(ContactItem contactItem)
+    private void OpenChatRoom( @NonNull ContactItem contactItem)
     {
         Intent chattingRoomIntent = new Intent(getApplicationContext() , ChatRoom.class);
 
@@ -188,8 +194,9 @@ public class MainActivity extends AppCompatActivity
                                     flag = true;
                                     c.setName(cs.name);
                                     myContactsList.add(c);
+
                                     startContactInfoListener(c); // to get the contacts info
-                           //         Toast.makeText(getApplicationContext(), "SHOW : " + cs.getPhoneNumber() + ":" + cs.getName(), Toast.LENGTH_SHORT).show();
+
                                     break;
                                 }
                             }
@@ -397,7 +404,8 @@ public class MainActivity extends AppCompatActivity
                         // Update firebase
                         if(!cNumber.equalsIgnoreCase("No number"))
                         {
-                            ContactItem contact = getContactInfo(cNumber);
+                            //ContactItem contact = getContactInfo(cNumber);
+
                             OpenChattingRoomWithContactIfExists(cNumber);
 
 /*
@@ -424,24 +432,38 @@ public class MainActivity extends AppCompatActivity
 
     private void OpenChattingRoomWithContactIfExists(String cNumber)
     {
-        MyProgressDialogManager.showProgressDialog(this);
-        FirebaseDatabase.getInstance().getReference().child("users").child(cNumber).child("userInfo")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot)
-                    {
-                        ContactItem contactItem  = snapshot.getValue(ContactItem.class);
+        try {
+            MyProgressDialogManager.showProgressDialog(this);
+            FirebaseDatabase.getInstance().getReference().child("users").child(cNumber).child("userInfo")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot)
+                        {
+                            try {
+                                ContactItem contactItem = snapshot.getValue(ContactItem.class);
 
-                        OpenChatRoom(contactItem);
-                        MyProgressDialogManager.hideProgressDialog();
-                    }
+                                OpenChatRoom(contactItem);
+                                MyProgressDialogManager.hideProgressDialog();
+                            }
+                            catch (Exception e)
+                            {
+                                MyProgressDialogManager.hideProgressDialog();
+                                Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
+                            }
+                        }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
-                    }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(getApplicationContext(), "This Contact has no account", Toast.LENGTH_LONG).show();
+                        }
 
-                });
+                    });
+        }
+        catch (Exception e)
+        {
+            MyProgressDialogManager.hideProgressDialog();
+            Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
+        }
     }
 
     static class PairNumberName{
@@ -484,5 +506,39 @@ public class MainActivity extends AppCompatActivity
         catch (Exception ex){
             return(" ");
         }
+    }
+
+
+    private void ListenNotifyCount()
+    {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        databaseReference.child("users").child(LoggedInUser.getPhoneNumber()).child("notify-count")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        try {
+                            for (DataSnapshot childSnapshot : snapshot.getChildren())
+                            {
+                                String phoneNumber = childSnapshot.getKey();
+                                long count = (long) childSnapshot.getValue();
+
+                                contactsListAdapter.receiveMessage(phoneNumber, (int) count);
+
+                                //notifyCount.put(phoneNumber , count);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
     }
 }

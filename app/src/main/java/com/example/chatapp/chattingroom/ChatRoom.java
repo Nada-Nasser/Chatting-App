@@ -25,12 +25,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.chatapp.R;
 import com.example.chatapp.contactsmanager.ContactItem;
 import com.example.chatapp.globalinfo.Gender;
 import com.example.chatapp.globalinfo.GlobalOperations;
 import com.example.chatapp.globalinfo.LoggedInUser;
+import com.example.chatapp.ui.ContactAccountInfo;
 import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -79,6 +81,7 @@ public class ChatRoom extends AppCompatActivity
     LinearLayout msgTestingLayout;
     ImageView imageOverview;
     TextView textOverview;
+    LinearLayout headerBarLayout;
 
 
     EditText textInputMsgEditText;
@@ -103,6 +106,7 @@ public class ChatRoom extends AppCompatActivity
             msgTestingLayout = findViewById(R.id.msgTesting);
             imageOverview = findViewById(R.id.imageOverview);
             textOverview = findViewById(R.id.textOverview);
+            headerBarLayout = findViewById(R.id.headerBar);
 
             LoggedInUser.beOnlineOnFirebase();
 
@@ -139,6 +143,17 @@ public class ChatRoom extends AppCompatActivity
 
             loadMessages();
             audioMessagesRecorder = new AudioMessagesRecorder(this);
+
+            seenAllMessages();
+
+            headerBarLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentManager fm= getSupportFragmentManager();
+                    ContactAccountInfo contactAccountInfo = new ContactAccountInfo(chattingContact);
+                    contactAccountInfo.show(fm,"show account");
+                }
+            });
 
         }catch (Exception e)
         {
@@ -346,6 +361,8 @@ public class ChatRoom extends AppCompatActivity
                         Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
                     }
                 });
+
+        incrementNotifyCount(chattingContact.getPhoneNumber());
 
     }
 
@@ -628,67 +645,6 @@ public class ChatRoom extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-
-/*
-    private void uploadImage(Bitmap bitmap)
-    {
-        try {
-            final Bitmap imageBitmapCopy = bitmap;
-
-            DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
-            Date dateobj = new Date();
-
-            FirebaseStorage storage = FirebaseStorage.getInstance();
-            // Create a storage reference from our app
-            StorageReference storageRef = storage.getReferenceFromUrl("gs://chatapp-dfb4b.appspot.com");
-
-            final String ImagePath = LoggedInUser.getUserID()+ "_" + df.format(dateobj) + ".jpg";
-
-            final StorageReference mountainsRef = storageRef.child("images/" + ImagePath);
-
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            byte[] data = byteArrayOutputStream.toByteArray();
-
-            UploadTask uploadTask = mountainsRef.putBytes(data);
-
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception)
-                {
-                        MyProgressDialogManager.hideProgressDialog();
-                        Toast.makeText(getApplicationContext(),"couldn't Attach the image " + exception.getMessage()  , Toast.LENGTH_SHORT).show();
-                        }
-            })
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
-                    {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
-                        {
-                            try {
-                                attachedImagePath = mountainsRef.getPath();
-                                imageOverview.setImageBitmap(imageBitmapCopy);
-
-                                Toast.makeText(getApplicationContext(),"Image Attached" , Toast.LENGTH_SHORT).show();
-                            }
-                            catch (Exception e) {
-                                MyProgressDialogManager.hideProgressDialog();
-                                e.printStackTrace();
-                            }
-                        }
-
-                    });
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            MyProgressDialogManager.hideProgressDialog();
-            Toast.makeText(getApplicationContext(),"Couldn't upload the image" , Toast.LENGTH_LONG).show();
-        }
-    }
-    */
-
     private void commitTextMessageToFirebaseWithImage(Bitmap bitmap, final String msgText)
     {
         try {
@@ -792,23 +748,6 @@ public class ChatRoom extends AppCompatActivity
         });
     }
 
-    /*
-    Date getCurrentDate()
-    {
-        Date c = Calendar.getInstance().getTime();
-        System.out.println("Current time => " + c);
-
-        return c;
-    }
-
-    String dateToStringFormatter(Date date)
-    {
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault());
-        String formattedDate = df.format(date);
-
-        return  formattedDate;
-    }*/
-
     public void onClickCloseOverViewLayout(View view)
     {
         closeMessageOverview();
@@ -820,4 +759,74 @@ public class ChatRoom extends AppCompatActivity
         attachedImagePath = "none";
         imageOverview.setImageResource(R.drawable.loading_icon);
     }
+
+    // TODO
+    private void incrementNotifyCount(final String contactNumber)
+    {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        databaseReference.child("users").child(contactNumber).child("notify-count").child(LoggedInUser.getPhoneNumber())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        long count = (long) snapshot.getValue();
+                        Log.i("incrementNotifyCount", "onDataChange: " + count);
+                        writeNotifyCount(contactNumber , (int) count+1);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+/*
+        databaseReference.child("users").child(contactNumber).child("notify-count")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot)
+                    {
+                        try {
+                            for (DataSnapshot childSnapshot : snapshot.getChildren()) {
+                                String phoneNumber = childSnapshot.getKey();
+
+
+                                String msg = phoneNumber +" = " + LoggedInUser.getPhoneNumber();
+                                Log.i("incrementNotifyCount", "onDataChange: " + msg);
+                                if (phoneNumber.equals(LoggedInUser.getPhoneNumber()))
+                                {
+                                    int count = (int) childSnapshot.getValue();
+                                    writeNotifyCount(contactNumber, count+1);
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });*/
+
+    }
+
+    private void writeNotifyCount(String phoneNumber, int count)
+    {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.child("users").child(phoneNumber).child("notify-count")
+                .child(LoggedInUser.getPhoneNumber()).setValue(count);
+    }
+
+    private void seenAllMessages()
+    {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.child("users").child(LoggedInUser.getPhoneNumber()).child("notify-count")
+                .child(chattingContact.getPhoneNumber()).setValue(0);
+    }
+
 }
