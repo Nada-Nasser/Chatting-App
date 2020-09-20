@@ -22,10 +22,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.example.chatapp.PairNumberName;
 import com.example.chatapp.R;
-import com.example.chatapp.chattingroom.ChatRoom;
+import com.example.chatapp.chattingroom.ChatRoomManager;
 import com.example.chatapp.contactsmanager.ContactItem;
 import com.example.chatapp.contactsmanager.ContactsListAdapter;
+import com.example.chatapp.globalinfo.GlobalOperations;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.messagesservices.MessagesListenerService;
 import com.example.chatapp.ui.MyProgressDialogManager;
@@ -43,11 +45,9 @@ public class MainActivity extends AppCompatActivity
 {
     private static final int REQUEST_CODE_ASK_CONTACTS_PERMISSIONS = 111;
     static final int PICK_CONTACT_REQUEST_CODE = 1;
-
     ArrayList<ContactItem> myContactsList;
     ContactsListAdapter contactsListAdapter;
     ListView myContactsListView;
-
     HashMap<String , Integer> notifyCount;
 
     @Override
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity
         myContactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                OpenChatRoom(myContactsList.get(i));
+                ChatRoomManager.OpenChatRoom(getApplicationContext(), myContactsList.get(i));
             }
         });
 
@@ -81,29 +81,12 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         startService(new Intent(this, MessagesListenerService.class));
-    }
-
-    private void OpenChatRoom( @NonNull ContactItem contactItem)
-    {
-        Intent chattingRoomIntent = new Intent(getApplicationContext() , ChatRoom.class);
-
-        chattingRoomIntent.putExtra("userID",contactItem.getUserID());
-        chattingRoomIntent.putExtra("name",contactItem.getName());
-        chattingRoomIntent.putExtra("phoneNumber",contactItem.getPhoneNumber());
-        chattingRoomIntent.putExtra("status",contactItem.getStatus());
-        chattingRoomIntent.putExtra("isActive",contactItem.getIsActive());
-
-        chattingRoomIntent.putExtra("gender",contactItem.getGender());
-        chattingRoomIntent.putExtra("imagePath",contactItem.getImagePath());
-
-        startActivity(chattingRoomIntent);
     }
 
     @Override
@@ -267,42 +250,10 @@ public class MainActivity extends AppCompatActivity
 
             String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-            listAllPhoneContacts.add(new PairNumberName(name, FormatPhoneNumber(phoneNumber)));
+            listAllPhoneContacts.add(new PairNumberName(name, GlobalOperations.FormatPhoneNumber(phoneNumber)));
         }
         cursor.close();
         return listAllPhoneContacts;
-    }
-
-    ContactItem tempContact;
-    private ContactItem getContactInfo(final String number)
-    {
-        tempContact = new ContactItem();
-
-        FirebaseDatabase.getInstance().getReference().child("users").child(number).child("userInfo")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                ContactItem contactItem  = snapshot.getValue(ContactItem.class);
-
-                Toast.makeText(getApplicationContext(),contactItem.toString() , Toast.LENGTH_LONG).show();
-
-                copyContactItemToTemp(contactItem);
-                Log.i("CONTACTS : " , contactItem.toString() + " ADDAD at getContactInfo");
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
-        return tempContact;
-    }
-
-    private void copyContactItemToTemp(@NonNull ContactItem contactItem) {
-        tempContact = new ContactItem(contactItem.getUserID(),contactItem.getName(),
-                contactItem.getPhoneNumber(),contactItem.getStatus(),contactItem.getIsActive(),contactItem.getGender(),contactItem.getImagePath());
     }
 
     private void checkUserDate()
@@ -353,7 +304,6 @@ public class MainActivity extends AppCompatActivity
         startActivity(settingIntent);
     }
 
-    // pick phone number
     void PickContact()
     {
         if (Build.VERSION.SDK_INT >= 23){
@@ -369,7 +319,6 @@ public class MainActivity extends AppCompatActivity
         startActivityForResult(intent, PICK_CONTACT_REQUEST_CODE);
     }
 
-    // Declare
     @Override
     public void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
@@ -397,27 +346,15 @@ public class MainActivity extends AppCompatActivity
                                     null, null);
 
                             phones.moveToFirst();
-                            cNumber = FormatPhoneNumber (phones.getString(phones.getColumnIndex("data1")));
-                            System.out.println("number is:"+cNumber);
+                            cNumber = GlobalOperations.FormatPhoneNumber(phones.getString(phones.getColumnIndex("data1")));
+                            System.out.println("number is:" + cNumber);
                         }
 
                         // Update firebase
                         if(!cNumber.equalsIgnoreCase("No number"))
                         {
-                            //ContactItem contact = getContactInfo(cNumber);
+                            ChatRoomManager.OpenChattingRoomWithContactIfExists(this, cNumber);
 
-                            OpenChattingRoomWithContactIfExists(cNumber);
-
-/*
-                            if(contact != null)
-                            {
-                                contact.setName(name);
-                                OpenChatRoom(contact);
-                            }
-                            else
-                            {
-                                Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
-                            }*/
                         }
                         else
                         {
@@ -429,85 +366,6 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
-
-    private void OpenChattingRoomWithContactIfExists(String cNumber)
-    {
-        try {
-            MyProgressDialogManager.showProgressDialog(this);
-            FirebaseDatabase.getInstance().getReference().child("users").child(cNumber).child("userInfo")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot)
-                        {
-                            try {
-                                ContactItem contactItem = snapshot.getValue(ContactItem.class);
-
-                                OpenChatRoom(contactItem);
-                                MyProgressDialogManager.hideProgressDialog();
-                            }
-                            catch (Exception e)
-                            {
-                                MyProgressDialogManager.hideProgressDialog();
-                                Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(getApplicationContext(), "This Contact has no account", Toast.LENGTH_LONG).show();
-                        }
-
-                    });
-        }
-        catch (Exception e)
-        {
-            MyProgressDialogManager.hideProgressDialog();
-            Toast.makeText(getApplicationContext(),"This Contact has no account" , Toast.LENGTH_LONG).show();
-        }
-    }
-
-    static class PairNumberName{
-        String name;
-        String phoneNumber;
-
-        public PairNumberName(String name, String phoneNumber) {
-            this.name = name;
-            this.phoneNumber = phoneNumber;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getPhoneNumber() {
-            return phoneNumber;
-        }
-
-        public void setPhoneNumber(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
-        }
-    }
-
-    //format phone number
-    @NonNull
-    public static String FormatPhoneNumber(String Oldnmber)
-    {
-        try{
-            String numberOnly= Oldnmber.replaceAll("[^0-9]", "");
-            if(Oldnmber.charAt(0)=='+') numberOnly="+" +numberOnly ;
-            if (numberOnly.length()>=10)
-                numberOnly=numberOnly.substring(numberOnly.length()-10);
-            return(numberOnly);
-        }
-        catch (Exception ex){
-            return(" ");
-        }
-    }
-
 
     private void ListenNotifyCount()
     {
@@ -525,8 +383,6 @@ public class MainActivity extends AppCompatActivity
                                 long count = (long) childSnapshot.getValue();
 
                                 contactsListAdapter.receiveMessage(phoneNumber, (int) count);
-
-                                //notifyCount.put(phoneNumber , count);
                             }
                         }
                         catch (Exception e)

@@ -1,4 +1,4 @@
-package com.example.chatapp.chattingroom;
+package com.example.chatapp.chattingroom.messages;
 
 import java.util.Date;
 

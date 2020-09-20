@@ -1,4 +1,4 @@
-package com.example.chatapp.chattingroom;
+package com.example.chatapp.chattingroom.messages;
 
 import android.content.Context;
 import android.media.MediaPlayer;
@@ -94,7 +94,7 @@ public class AudioMessagesRecorder
 
     private void onCreateAudioManager(Context context)
     {
-        this.context = context;
+        AudioMessagesRecorder.context = context;
         fileName = context.getFilesDir().getAbsolutePath();
     }
 
