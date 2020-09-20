@@ -278,8 +278,6 @@ public class MainActivity extends AppCompatActivity
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu , menu);
 
-        // TODO: Searching menu item
-
         return true;
     }
 

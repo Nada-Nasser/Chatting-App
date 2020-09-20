@@ -22,6 +22,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.example.chatapp.R;
 import com.example.chatapp.globalinfo.Gender;
+import com.example.chatapp.globalinfo.GlobalOperations;
 import com.example.chatapp.globalinfo.LoggedInUser;
 import com.example.chatapp.ui.MyProgressDialogManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -207,13 +208,13 @@ public class PersonalSetting extends AppCompatActivity
             final Bitmap imageBitmapCopy = bitmap;
 
             DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
-            Date dateobj = new Date(); // TODO get current Date
+            Date date = GlobalOperations.getCurrentDate();
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             // Create a storage reference from our app
             StorageReference storageRef = storage.getReferenceFromUrl("gs://chatapp-dfb4b.appspot.com");
 
-            final String ImagePath = LoggedInUser.getUserID()+ "_" + df.format(dateobj) + ".jpg";
+            final String ImagePath = LoggedInUser.getUserID() + "_" + df.format(date) + ".jpg";
 
             final StorageReference mountainsRef = storageRef.child("images/" + ImagePath);
 

@@ -26,6 +26,7 @@ public class GlobalOperations
     }
 
     // in chattingroom
+    @NonNull
     public static Date getCurrentDate()
     {
         Date c = Calendar.getInstance().getTime();
@@ -35,6 +36,7 @@ public class GlobalOperations
     }
 
     // in chattingroom
+    @NonNull
     public static String dateToStringFormatter(Date date)
     {
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault());

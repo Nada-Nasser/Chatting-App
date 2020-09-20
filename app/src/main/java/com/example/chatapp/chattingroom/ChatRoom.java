@@ -194,7 +194,7 @@ public class ChatRoom extends AppCompatActivity
                                    DateFormat df = new SimpleDateFormat("ddMMyyHHmmss");
                                    Date dateobj = new Date(); // TODO fetch msg.sentTime
 
-                                   messagesList.add(new AudioMessage(msg.messageID , dateobj , msg.sentByMe,msg.audioPath));
+                                   messagesList.add(new AudioMessage(msg.messageID, dateobj, msg.sentByMe, msg.audioPath));
                                }
                                else if(TextMessage.class.getName().equalsIgnoreCase(msg.type))
                                {
@@ -298,12 +298,6 @@ public class ChatRoom extends AppCompatActivity
 
         textInputMsgEditText.setText("");
         msgTestingLayout.setVisibility(View.GONE);
-
-        // There is a bitmap image?
-
-        // yes: 1- upload the image to get its path. 2- send the message and notification 3- set Bitmap = null again
-
-        // NO: send the message and notification
 
         try
         {
@@ -520,11 +514,6 @@ public class ChatRoom extends AppCompatActivity
     protected void onStop() {
         super.onStop();
         audioMessagesRecorder.stopAudioManager();
-    }
-
-    public void onClickContactInfo(View view)
-    {
-        // TODO
     }
 
     public void onClickAttachImage(View view)
@@ -766,7 +755,6 @@ public class ChatRoom extends AppCompatActivity
         imageOverview.setImageResource(R.drawable.loading_icon);
     }
 
-    // TODO
     private void incrementNotifyCount(final String contactNumber)
     {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
@@ -785,40 +773,6 @@ public class ChatRoom extends AppCompatActivity
 
                     }
                 });
-
-/*
-        databaseReference.child("users").child(contactNumber).child("notify-count")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot)
-                    {
-                        try {
-                            for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-                                String phoneNumber = childSnapshot.getKey();
-
-
-                                String msg = phoneNumber +" = " + LoggedInUser.getPhoneNumber();
-                                Log.i("incrementNotifyCount", "onDataChange: " + msg);
-                                if (phoneNumber.equals(LoggedInUser.getPhoneNumber()))
-                                {
-                                    int count = (int) childSnapshot.getValue();
-                                    writeNotifyCount(contactNumber, count+1);
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });*/
-
     }
 
     private void writeNotifyCount(String phoneNumber, int count)

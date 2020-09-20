@@ -8,13 +8,14 @@
         android:title="add Contact"
         app:showAsAction="ifRoom"
         android:icon="@drawable/add_contact"/>
-
+<!--
     <item
         android:id="@+id/app_bar_search"
         android:icon="@drawable/ic_search_black_24dp"
         android:title="Search"
         app:actionViewClass="android.widget.SearchView"
         app:showAsAction="always" />
+-->
 
     <item
         android:id="@+id/app_bar_setting"

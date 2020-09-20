@@ -88,7 +88,7 @@ public class LoginActivity extends AppCompatActivity
                         else {
                             Log.w("firebaseAuth", "signInAnonymously:failure", task.getException());
                             Toast.makeText(getApplicationContext(), "Authentication failed. check your internet connection", Toast.LENGTH_SHORT).show();
-                          // TODO  finish();
+                            finish();
                         }
                     }
                 });
