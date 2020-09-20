@@ -28,12 +28,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.chatapp.R;
-import com.example.chatapp.chattingroom.messages.AudioMessage;
-import com.example.chatapp.chattingroom.messages.AudioMessagesRecorder;
-import com.example.chatapp.chattingroom.messages.ChattingMessage;
-import com.example.chatapp.chattingroom.messages.FirebaseChattingMessage;
-import com.example.chatapp.chattingroom.messages.MessagesListAdapter;
-import com.example.chatapp.chattingroom.messages.TextMessage;
 import com.example.chatapp.contactsmanager.ContactItem;
 import com.example.chatapp.globalinfo.Gender;
 import com.example.chatapp.globalinfo.GlobalOperations;

@@ -1,4 +1,4 @@
-package com.example.chatapp.chattingroom.messages;
+package com.example.chatapp.chattingroom;
 
 import android.app.Activity;
 import android.content.Context;
@@ -149,7 +149,7 @@ public class MessagesListAdapter extends BaseAdapter
 
                     }catch (Exception e)
                     {
-                        AudioMessagesPlayer.isPlaying = false;
+                        audioMessagesPlayer.isPlaying = false;
                     }
                 }
             });

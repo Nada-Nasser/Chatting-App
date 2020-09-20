@@ -1,4 +1,4 @@
-package com.example.chatapp.chattingroom.messages;
+package com.example.chatapp.chattingroom;
 
 import com.google.firebase.database.Exclude;
 

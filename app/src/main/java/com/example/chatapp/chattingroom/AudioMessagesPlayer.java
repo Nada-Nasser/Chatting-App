@@ -1,4 +1,4 @@
-package com.example.chatapp.chattingroom.messages;
+package com.example.chatapp.chattingroom;
 
 import android.content.Context;
 import android.media.MediaPlayer;
@@ -77,7 +77,7 @@ public class AudioMessagesPlayer
     public AudioMessagesPlayer(Context context)
     {
         player = new MediaPlayer();
-        AudioMessagesPlayer.context = context;
+        this.context = context;
 
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override

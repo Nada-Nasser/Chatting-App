@@ -43,7 +43,9 @@ public class PersonalSetting extends AppCompatActivity
 {
     private static final int REQUEST_READ_STORAGE_CODE_PERMISSIONS = 111;
     private static final int RESULT_LOAD_IMAGE_CODE = 112;
+    private static final int REQUEST_RECORD_AUDIO_CODE_PERMISSIONS = 113;
 
+//    ContactItem myInfo;
     ImageView userImageView;
     EditText statusEditText;
 
@@ -66,6 +68,7 @@ public class PersonalSetting extends AppCompatActivity
         statusEditText.setText(LoggedInUser.getStatus());
         updateContactImageView();
     }
+
 
     void updateContactImageView()
     {
