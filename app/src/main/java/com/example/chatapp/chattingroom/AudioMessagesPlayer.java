@@ -12,17 +12,17 @@ public class AudioMessagesPlayer
 
     static Context context;
 
-    private static String fileName = null;
-
-    private MediaPlayer player = null;
+    private static MediaPlayer player = null;
 
     static boolean isPlaying = false;
 
-    public MediaPlayer getPlayer() {
-        return player;
+    public AudioMessagesPlayer(Context context)
+    {
+        player = new MediaPlayer();
+        this.context = context;
     }
 
-    public void prePlay(String path)
+    public void preparePlayer(String path)
     {
         player = new MediaPlayer();
 
@@ -38,66 +38,33 @@ public class AudioMessagesPlayer
     // else -> means the mediaPlayer will stop the audio
     public void onPlay(String path)
     {
-    //    fileName = context.getFilesDir().getAbsolutePath() + "/" + path + ".3gp";
-        fileName = path;
-        startPlaying(fileName);
-        isPlaying = true;
-    }
+        releaseAudioPlayer();
 
-    public void onStop()
-    {
-        stopPlaying();
-        isPlaying = false;
-    }
-
-    private void startPlaying(String path)
-    {
         player = new MediaPlayer();
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                isPlaying = false;
-            }
-        });
-
         try {
             player.setDataSource(path);
             player.prepare();
+
+            isPlaying = true;
             player.start();
+            Log.e(LOG_TAG, "start() audio player");
         } catch (IOException e) {
             Log.e(LOG_TAG, "prepare() failed");
         }
     }
 
-    private void stopPlaying() {
-        player.release();
-        player = null;
-    }
-
-    public AudioMessagesPlayer(Context context)
+    public void releaseAudioPlayer()
     {
-        player = new MediaPlayer();
-        this.context = context;
-
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                isPlaying = false;
-            }
-        });
-    }
-
-    public String getLastPlayedAudioFilePath()
-    {
-        return fileName;
-    }
-
-    public void stopAudioPlayer()
-    {
-        if (player != null) {
+        if (player != null)
+        {
+            isPlaying = false;
             player.release();
             player = null;
-            isPlaying = false;
+            Log.e(LOG_TAG, "release() audio player");
         }
+    }
+
+    public MediaPlayer getPlayer() {
+        return player;
     }
 }

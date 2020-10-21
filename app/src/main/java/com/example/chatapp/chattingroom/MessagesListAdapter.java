@@ -136,17 +136,24 @@ public class MessagesListAdapter extends BaseAdapter
                 public void onClick(View view)
                 {
                     try {
-                        audioMessagesPlayer.onPlay(file.getAbsolutePath());
-                        thread.start();
-                        audioIcon.setImageResource(R.drawable.active_voice_recorder_icon);
 
-                        audioMessagesPlayer.getPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                            @Override
-                            public void onCompletion(MediaPlayer mediaPlayer) {
-                                audioIcon.setImageResource(R.drawable.audio_msg_icon);
-                            }
-                        });
+                        if (AudioMessagesPlayer.isPlaying){
+                            audioMessagesPlayer.releaseAudioPlayer();
+                            audioIcon.setImageResource(R.drawable.audio_msg_icon);
+                        }
+                        else {
+                            audioIcon.setImageResource(R.drawable.active_voice_recorder_icon);
+                            audioMessagesPlayer.onPlay(file.getAbsolutePath());
+                            thread.start();
 
+                            audioMessagesPlayer.getPlayer().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                @Override
+                                public void onCompletion(MediaPlayer mediaPlayer) {
+                                    audioIcon.setImageResource(R.drawable.audio_msg_icon);
+                                    audioMessagesPlayer.releaseAudioPlayer();
+                                }
+                            });
+                        }
                     }catch (Exception e)
                     {
                         audioMessagesPlayer.isPlaying = false;
@@ -197,7 +204,7 @@ public class MessagesListAdapter extends BaseAdapter
 
                     audioIcon.setImageResource(R.drawable.audio_msg_icon);
 
-                    audioMessagesPlayer.prePlay(localFile.getAbsolutePath());
+                    audioMessagesPlayer.preparePlayer(localFile.getAbsolutePath());
 
                     msgSeekBar.setMax(audioMessagesPlayer.getPlayer().getDuration());
 
@@ -228,6 +235,7 @@ public class MessagesListAdapter extends BaseAdapter
         {
             this.progressTextView = progressTextView;
             this.seekBar = seekBar;
+            this.seekBar.setProgress(0);
         }
 
         @Override
@@ -258,7 +266,7 @@ public class MessagesListAdapter extends BaseAdapter
                                     e.printStackTrace();
                                 }
 
-                                audioMessagesPlayer.stopAudioPlayer();
+                                audioMessagesPlayer.releaseAudioPlayer();
                                 seekBar.setProgress(0);
                                 progressTextView.setText(TimeFormatter(max));
                             }
